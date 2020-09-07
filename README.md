@@ -1,6 +1,5 @@
 # Matrix-Docker-install
-Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2) [without federation]
-
+Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2)
 
 Jump to:
 1. Introducction and overview
@@ -20,6 +19,7 @@ Behind that runs the typical Matrix setup:
 - Synapse
 - Nginx serving Synapse and Element
 The final piece is only required for voice and video calls: coTURN
+Note that this setup does not include federation to otehr matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.
 
 This is diagrammed below:
 
@@ -50,9 +50,16 @@ Setting up RancherOS is super simple with Digital Ocean:
 2. For a small install, I used 2GB / 1CPU / 50GB SSD / 2TB tansfer option
 3. Select datacenter location
 4. NB!! Add SSH keys (you can only login to RancherOS with SSH
+5. Finish creating your droplet. SSH to it by `ssh rancher@ip.ad.re.ss`
 
 ## Bare metal / VirtualBox, etc
-An easy guide is found on the Rancher website here: 
+An easy guide is found on the Rancher website [here](https://rancher.com/docs/os/v1.x/en/quick-start-guide/) and [here](https://rancher.com/docs/os/v1.x/en/installation/server/install-to-disk/)
 But it consists of the following:
-1. Download the RancherOS iso (
-2. Create the cloud-config.yml
+1. [Download the RancherOS iso](https://rancher.com/rancher-os)
+2. Create the **cloud-config.yml** file with the following content:
+```#cloud-config
+ssh_authorized_keys:
+  - ssh-rsa AAA...
+``` 
+ ... Note that the file must include the *#cloud-config*. You can find your ssh keys by running the command `cat ~/.ssh/id_rsa.pub`.
+ 3.
