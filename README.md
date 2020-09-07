@@ -72,7 +72,7 @@ ssh_authorized_keys:
 Use the command `docker network create web` to create the network called "web". (See diagram above).
  
  # 3. DNS Setup 
- [home](#matrix-docker-install)
+ [home](#matrix-docker-install)  
  Create A-records (CNAME could also be used) as follows:
 
 IP | URL | Service that will be using it
@@ -161,8 +161,51 @@ Let's understand the above code a bit.
 3. Run `docker ps` to see that it is running, and that the ports have been passed to it.
 
 # 5. NGINX for web (incl. Element) 
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
+Why are we adding Nginx before Synapse? It gives an easy to use, little config, method to test our Traefik proxy and more.
+Let's start with creating the files and volumes for Nginx:  
+```
+sudo mkdir -p /opt/matrix/nginx/riot
+sudo mkdir /opt/matrix/nginx/riot/config
+sudo mkdir /opt/matrix/nginx/riot/versions
+```
+Then download the latest [Element (Riot)](https://github.com/vector-im/riot-web/releases) code. I found that un-tar'ing the code was a mission on RancherOS. So instead I:
+1. Downloaded it to my machine, un-tar'ed it and then zip'd it.  
+2. Copied the zip to the container (scp) and moved it to **/opt/matrix/nginx/riot/versions**.  
+3. `unzip` the compressed files.  
 
+`sudo ln -s /opt/matrix/nginx/riot/versions/riot-v1.7.5-rc.1 /opt/matrix/nginx/riot/riot-web`  
+This will allow you change versions merely by updating the symlink.  
+```
+sudo cp /opt/matrix/nginx/riot/riot-web/config.sample.json /opt/matrix/nginx/riot/config/config.json
+sudo vi /opt/matrix/nginx/riot/config/config.json
+```
+Edit the following code in **config.json** to get Element's setup to synapse prepared:
+```
+"m.homeserver": {                                  
+            "base_url": "https://synapse.matrix.example.com",        
+            "server_name": "matrix.example.com"                      
+        }
+        
+"roomDirectory": {                                                
+        "servers": [                                                  
+            "synapse.matrix.example.com"                                       
+        ]                                                             
+    }
+ ```
+ We need to configure Nginx to accept and present Element:
+ `sudo vi /opt/matrix/nginx/matrix.conf`  
+ Add the following content:
+ ```
+ server {
+  listen        80;
+  server_name   $MY_DOMAIN_RIO;
+    root /usr/share/nginx/html/;
+}
+```
+
+And now for the fun part - adding the docker image!
+ 
 # 6. Postgres db for Matrix 
 [home](#matrix-docker-install)
 
