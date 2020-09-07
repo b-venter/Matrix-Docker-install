@@ -1,5 +1,7 @@
 # Matrix-Docker-install
-Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2)
+Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2).
+
+Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
 **Jump to:**  
 [1. Introduction and overview](#1-introduction-and-overview)  
@@ -11,6 +13,7 @@ Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2)
 [7. Synapse engine](#7-synapse-engine)  
 [8. Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
 [9. Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
+[10. Other references]()  
 
 # 1. Introduction and overview
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic), but I have added a stanalone ACME as well - since coTURN is not behind Traefik, has no web service but we need a way to get certificates for TLS.
@@ -216,4 +219,7 @@ And now for the fun part - adding the docker image!
 [home](#matrix-docker-install)
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
+[home](#matrix-docker-install)
+
+# 10. Other references
 [home](#matrix-docker-install)
