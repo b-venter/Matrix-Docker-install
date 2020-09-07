@@ -423,9 +423,9 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  2. Install acme.sh: `docker exec -ti acme apk add --upgrade acme.sh`
  
  
- Before going further, now is a good time to test that port 443, since **openssl** has been installed with the above command.
- Test: `docker exec -ti acme openssl s_server -accept 443 -nocert -cipher aNULL`  
- Now on you own machine / clinet PC: `openssl s_client -connect turn.matrix.example.com:443 -cipher aNULL`
+ Before going further, now is a good time to test that port 443, since **openssl** has been installed with the above command.  
+ Server side: `docker exec -ti acme openssl s_server -accept 443 -nocert -cipher aNULL`  
+ Now on you own machine / client PC: `openssl s_client -connect turn.matrix.example.com:443 -cipher aNULL`  
  Once you have tested that requests are passing direct to your "acme" container, finish requesting the certificates.
  
  3. `docker exec -ti acme acme.sh --issue --alpn -d turn.matrix.example.com`
