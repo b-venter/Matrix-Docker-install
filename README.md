@@ -12,7 +12,7 @@ Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2)
 [8. Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
 [9. Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
 
-# 1. Introduction and overview
+# 1. Introduction and overview [home](#matrix-docker-install)
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic), but I have added a stanalone ACME as well - since coTURN is not behind Traefik, has no web service but we need a way to get certificates for TLS.
 Behind that runs the typical Matrix setup:
 - PostgreSQL
@@ -43,7 +43,7 @@ This is diagrammed below:
                           ACME        
                                   
                                   
-# 2. Docker by means of RancherOS
+# 2. Docker by means of RancherOS [home](#matrix-docker-install)
 ## With DigitalOcean
 Setting up RancherOS is super simple with Digital Ocean:
 1. Create droplet > Container distributions > Select RancherOS
@@ -70,7 +70,7 @@ ssh_authorized_keys:
 ## First step - create the network
 Use the command `docker network create web` to create the network called "web". (See diagram above).
  
- # 3. DNS Setup
+ # 3. DNS Setup [home](#matrix-docker-install)
  Create A-records (CNAME could also be used) as follows:
 
 IP | URL | Service that will be using it
@@ -81,7 +81,7 @@ IP | URL | Service that will be using it
 203.0.113.5 | turn.matrix.example.com | *coTURN*
 
 
-# 4. Controlling the Traefik(v2.2)
+# 4. Controlling the Traefik(v2.2) [home](#matrix-docker-install)
 ### Setup environment variables
 This is to make your life easier. Traefik requires the domain names to be indicated with backticks. If you use a **yml** file, that is no problem, but if you are passing the arguments directly on the command line shell (*which is how I am doing it here*), then the shell will interprest teh backticks. So, rather set them as environment variables, e.g.:
 ```
@@ -157,12 +157,12 @@ Let's understand the above code a bit.
 
 3. Run `docker ps` to see that it is running, and that the ports have been passed to it.
 
-# 5. NGINX for web (incl. Element)
+# 5. NGINX for web (incl. Element) [home](#matrix-docker-install)
 
-# 6. Postgres db for Matrix
+# 6. Postgres db for Matrix [home](#matrix-docker-install)
 
-# 7. Synapse engine
+# 7. Synapse engine [home](#matrix-docker-install)
 
-# 8. Overcoming NAT with coTURN
+# 8. Overcoming NAT with coTURN [home](#matrix-docker-install)
 
-# 9. Adding a standalone ACME for non-HTTP certificates
+# 9. Adding a standalone ACME for non-HTTP certificates [home](#matrix-docker-install)
