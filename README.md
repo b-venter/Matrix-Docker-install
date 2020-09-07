@@ -243,6 +243,7 @@ The `nginx-websecure` labels follow the same rules, but note the following:
  * Stop the container for Traefik (`docker stop proxy`)
  * Edit the traefik.toml (`sudo vi /opt/traefik/traefik.toml`)
  * Hash-out the staging CA and uncomment the production server.
+ * Delete, recreate and chmod **acme.json** file to remove the test certificates
  * Start Traefik (`docker start proxy`)
  * Reload your page and you should have a valid certificate.
  
@@ -286,11 +287,7 @@ server_name: "matrix.example.com"
 listeners:
   - port: 8008
     tls: false
-    # Since it's running in a container we need to listen to 0.0.0.0
-    # The port is only exposed on the host and put behind reverse proxy
     bind_addresses: ['0.0.0.0']
-    # Previous
-    # bind_addresses: ['::1', '127.0.0.1']
     type: http
     x_forwarded: true
 
@@ -299,10 +296,10 @@ listeners:
         compress: false
 
 database:
-  name: psycopg2 #psycopg2 is a python postgres connector
+  name: psycopg2 
   args:
     user: synapse
-    password: AdimBijoukAfDoasEpIz
+    password: SomeMassivelyLongPassword
     database: matrix
 
     # This hostname is accessible through the docker network and is set 
@@ -311,10 +308,93 @@ database:
 
 enable_registration: true
 ```
+* Since it's running in a container we need to listen to 0.0.0.0. The port is only exposed on the host and put behind reverse proxy.
+* *psycopg2* is a python postgres connector that needs to be specified as it.
+* User and Password was specified when creating the [PostgreSQL container](https://github.com/b-venter/Matrix-Docker-install/blob/master/README.md#6-postgres-db-for-matrix).
+* The database refers to the host/container name of the PostgreSQL container.
+
+**Nginx** needs to be updated `sudo vi /opt/matrix/nginx/matrix.conf` by prepending the following:
+```
+server {
+  listen         80 default_server;
+  server_name    matrix.example.com;
+
+ # Traefik -> nginx -> synapse
+ location /_matrix {
+    proxy_pass http://synapse:8008;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    client_max_body_size 128m;
+  }
+  
+}
+```
+This allows requests to *synapse.matrix.example.com:443* to be proxied to the synapse container, port 8008.
+
+Restart all affected containers:
+* `docker restart nginx`
+* `docker restart synapse`
+
+You can toggle the *enable_registration* option to control when / if people can create an account. Just restart the *synapse* ccontainer to re-read the config.
+
+**Time to test:** Load the synapse.matrix.exmple.com URL - you should get a confirmation page that matrix is up and running. Then load the Element URL (element.matrix.example.com) and choose "Create Account". You will either be able to create an account or will get a message saying "Registration is disabled".
 
 
 # 8. Overcoming NAT with coTURN 
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
+At this point you should have been able create accounts, login with the app and send messages. And if you are on the same network, calling will also work. But calling to fellow accounts on different networks will be a problem. Enter coTURN...
+
+coTURN does not reside on the "web" network. Because of issues encountered with port forwarding, I have located it direct on the ["host" network](https://docs.docker.com/network/host/).
+
+`sudo mkdir -p /opt/coturn`  
+`sudo vi /opt/coturn/turnserver.conf`  
+
+Add the following to the file:
+```
+listening-port=3478
+tls-listening-port=5349
+#As a test, you can leave listening-ip out and see with "docker logs coturn" what coturn auto detects.
+listening-ip=203.0.113.5
+external-ip=203.0.113.5
+min-port=63000
+max-port=63059
+use-auth-secret
+static-auth-secret=AgainCreatedByAPasswordGenerator
+
+realm=turn.matrix.example.com
+user-quota=12
+total-quota=1200
+no-tcp-relay
+
+# Hash out certs initially to test standard tcp connection.
+# TLS certificates, including intermediate certs.
+# For Let's Encrypt certificates, use `fullchain.pem` here.
+#cert=/opt/turn.matrix.example.com/fullchain.cer
+# TLS private key file
+#pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
+
+stdout
+no-cli
+
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+```
+Now to install the coTURN container:  
+`docker run -d --restart=unless-stopped --network=host --name=coturn -v /opt/coturn/turnserver.conf:/etc/turnserver.conf -v /opt/certs:/opt -v /opt/coturn/pcap:/tmp instrumentisto/coturn -c /etc/turnserver.conf`
+ * This has no labels for Tarefik since we are not using Traefik to proxy anything for it.
+
+### Integrate with SYNAPSE
+`sudo vi /opt/matrix/synapse/homeserver.yaml`  
+Edit the following area:
+```
+## Turn ##
+turn_uris: [ "turn:turn.matrix.example.com?transport=tcp", "turns:turn.matrix.example.com?transport=tcp" ]
+turn_shared_secret: "AgainCreatedByAPasswordGenerator"
+turn_user_lifetime: 86400000
+#turn_allow_guests: false
+```
+And restart synapse container to update the config: `docker restart synapse`  
+*You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)
