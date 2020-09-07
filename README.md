@@ -13,7 +13,7 @@ Much of what I post here was gained with information from Jon Neverland's posts 
 [7. Synapse engine](#7-synapse-engine)  
 [8. Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
 [9. Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
-[10. Other references]()  
+[10. Other references](#10-other-references)  
 
 # 1. Introduction and overview
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic), but I have added a stanalone ACME as well - since coTURN is not behind Traefik, has no web service but we need a way to get certificates for TLS.
@@ -165,6 +165,7 @@ Let's understand the above code a bit.
 
 # 5. NGINX for web (incl. Element) 
 [home](#matrix-docker-install)  
+## First some prep work
 Why are we adding Nginx before Synapse? It gives an easy to use, little config, method to test our Traefik proxy and more.
 Let's start with creating the files and volumes for Nginx:  
 ```
@@ -207,7 +208,15 @@ Edit the following code in **config.json** to get Element's setup to synapse pre
 }
 ```
 
-And now for the fun part - adding the docker image!
+## And now for the fun part - adding the docker image!
+`docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json nginx`  
+That is a long command, so let's break it down a bit:  
+  **docker run** options:  
+  1. We also connnect to network "web" created earlier.
+  2. We named is "nginx".
+  3. We mounted volumes (`-v`).
+  4. *And we added labels!* (`-l`)...let's chat about those labels.
+
  
 # 6. Postgres db for Matrix 
 [home](#matrix-docker-install)
@@ -223,3 +232,4 @@ And now for the fun part - adding the docker image!
 
 # 10. Other references
 [home](#matrix-docker-install)
+[Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)
