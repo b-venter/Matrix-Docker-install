@@ -147,7 +147,6 @@ Let's understand the above code a bit.
 ***[ACME](https://docs.traefik.io/https/acme/):*** Used for automatic certificate management. Traefik will apply for and maintain your certificates. My example uses Let's Encrypt. Note that the *staging* server is enabled and the *production* is hashed out. This is to allow you to get the certificates and routing sorted without hitting the *production's* cap. Since we are storing the certificates in an atatched volume, even if you remove and re-add the Traefik container, the certificates will not be automatically deleted.  
 ***[API](https://docs.traefik.io/operations/api/):*** This provides a web interface which can be useful to understanding how Traefik works, what is running, etc. It is disabled in the above file as I do not recommend using it in production, but feel free to enable it when testing on VirtualBox or similar safe environments. It is reachable on port 8080 by default.  
 
-`docker ps` is also valuable to check which containers are running.
 
 2. Creating the container
   You can do this using `docker-compose`, but I have opted for full command line to understand options better and provide verbosity. You can easily take these options into a **yaml** file.
@@ -235,13 +234,84 @@ The `nginx-websecure` labels follow the same rules, but note the following:
 `-l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt"` - as a further option, Traefik is told to manage teh certificate from the ACME specified in [the config file](#setup-traefik) (here the *letsencrypt* value matches the acme value *letsencrypt*.acme).  
 - These two labels are responsible for mannaging certificates. Of which domains? Those mentioned in the Host(?) rules. If there is a && or ||, all Host names will be included in the certificate requeste: in the [SAN](https://docs.traefik.io/https/acme/#domain-definition).  
 
-**Test** by opening the URL to http://element/matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  
+**Test** by opening the URL to http://element/matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  Your test should reveal:
+1. That http is redirected to htttps
+2. The certificate is from Let's Encrypt staging ("FAKE")[See link](https://letsencrypt.org/docs/staging-environment/#root-certificate)
+3. And Nginx is serving your web page.
+
+***If all is good:***
+ * Stop the container for Traefik (`docker stop proxy`)
+ * Edit the traefik.toml (`sudo vi /opt/traefik/traefik.toml`)
+ * Hash-out the staging CA and uncomment the production server.
+ * Start Traefik (`docker start proxy`)
+ * Reload your page and you should have a valid certificate.
  
 # 6. Postgres db for Matrix 
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
+Matrix requires a database to store conversations, etc. You can use the built in sqlite, but for production you really want PostgreSQL in place.
+
+1. Generate a secure password (e.g with [APG](https://software.opensuse.org/package/apg))
+2. Create the docker container: `docker run -d --restart=unless-stopped --network=web --name=postgres -v /opt/matrix/pgdata:/var/lib/postgresql/data -l "traefik.enable=false" --env POSTGRES_PASSWORD=SomeMassivelyLongPassword --env POSTGRES_USER=synapse postgres:9.6.4`
+3. A database is created, but not with the specifications we want, so:
+ * Connect to the container's psql with the user you specified in 'POSTGRES_USER': `docker exec -it postgres psql -U synapse`
+ * Create a suitable database (change the DATABASE name and OWNER to your install or just use as I did):
+ ```
+ CREATE DATABASE matrix
+ ENCODING 'UTF8'
+ LC_COLLATE='C'
+ LC_CTYPE='C'
+ template=template0
+ OWNER synapse;
+ ```
+ * `\q` - to quit
+ 
+ So now we have a database ready to connect to. And note that it is not (1) exposed to the host network (`-p`), nor (2) is Traefik proxying anything for it (`traefik.enable=false`).
 
 # 7. Synapse engine 
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
+Now for the heart of our project - [Synapse](https://matrix.org/).
+
+`docker run -d --restart=unless-stopped --network=web --name=synapse -l "traefik.enable=true" -l "traefik.http.routers.synapse.rule=Host($MY_DOMAIN_SYN)" -l "traefik.http.services.synapse.loadbalancer.server.port=8008" -l "traefik.http.middlewares.synapse-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.synapse.middlewares=synapse-redirect-websecure" -l "traefik.http.routers.synapse-websecure.rule=Host($MY_DOMAIN_SYN)" -l "traefik.http.routers.synapse-websecure.tls=true" -l "traefik.http.routers.synapse-websecure.entrypoints=websecure" -l "traefik.http.routers.synapse-websecure.tls=true" -l "traefik.http.routers.synapse-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/synapse:/data  matrixdotorg/synapse`
+
+Most  of the data here is by now easy to understand from the aforementioned facts. However, note the following:  
+`-l "traefik.http.services.synapse.loadbalancer.server.port=8008"` - we tellTraefik to redirect / reverse proxy from 80 and 443 to Synapse's 8008 port.  
+
+Next, we need to generate Synapse's  config file:  
+`run -v /opt/matrix/synapse:/data --rm  -e SYNAPSE_SERVER_NAME=matrix.example.com -e SYNAPSE_REPORT_STATS=yes matrixdotorg/synapse generate`
+
+Edit the file: `sudo vi /opt/matrix/synapse/homeserver.yaml` to have the following data reflected:
+```
+server_name: "matrix.example.com"
+
+listeners:
+  - port: 8008
+    tls: false
+    # Since it's running in a container we need to listen to 0.0.0.0
+    # The port is only exposed on the host and put behind reverse proxy
+    bind_addresses: ['0.0.0.0']
+    # Previous
+    # bind_addresses: ['::1', '127.0.0.1']
+    type: http
+    x_forwarded: true
+
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2 #psycopg2 is a python postgres connector
+  args:
+    user: synapse
+    password: AdimBijoukAfDoasEpIz
+    database: matrix
+
+    # This hostname is accessible through the docker network and is set 
+    # by docker-compose. If you change the name of the service it will be different
+    host: postgres
+
+enable_registration: true
+```
+
 
 # 8. Overcoming NAT with coTURN 
 [home](#matrix-docker-install)
