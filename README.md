@@ -57,7 +57,8 @@ An easy guide is found on the Rancher website [here](https://rancher.com/docs/os
 But it consists of the following:
 1. [Download the RancherOS iso](https://rancher.com/rancher-os)
 2. Create the **cloud-config.yml** file with the following content:
-```#cloud-config
+```
+#cloud-config
 ssh_authorized_keys:
   - ssh-rsa AAA...
 ``` 
