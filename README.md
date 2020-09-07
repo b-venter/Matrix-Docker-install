@@ -147,6 +147,8 @@ Let's understand the above code a bit.
 ***[ACME](https://docs.traefik.io/https/acme/):*** Used for automatic certificate management. Traefik will apply for and maintain your certificates. My example uses Let's Encrypt. Note that the *staging* server is enabled and the *production* is hashed out. This is to allow you to get the certificates and routing sorted without hitting the *production's* cap. Since we are storing the certificates in an atatched volume, even if you remove and re-add the Traefik container, the certificates will not be automatically deleted.  
 ***[API](https://docs.traefik.io/operations/api/):*** This provides a web interface which can be useful to understanding how Traefik works, what is running, etc. It is disabled in the above file as I do not recommend using it in production, but feel free to enable it when testing on VirtualBox or similar safe environments. It is reachable on port 8080 by default.  
 
+`docker ps` is also valuable to check which containers are running.
+
 2. Creating the container
   You can do this using `docker-compose`, but I have opted for full command line to understand options better and provide verbosity. You can easily take these options into a **yaml** file.
   
@@ -209,7 +211,7 @@ Edit the following code in **config.json** to get Element's setup to synapse pre
 ```
 
 ## And now for the fun part - adding the docker image!
-`docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json nginx`  
+`docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json nginx`  
 That is a long command, so let's break it down a bit:  
   **docker run** options:  
   1. We also connnect to network "web" created earlier.
@@ -222,7 +224,18 @@ Most use a **docker-compose.yaml**, but to take some of the mystery away from ho
 `-l "traefik.enable=true"` - [This](https://docs.traefik.io/routing/providers/docker/#traefikenable) tells Traefik that you container must be evaluated and routes added.  
 `-l "traefik.http.routers.nginx.entrypoints=web"` - [This](https://docs.traefik.io/routing/routers/#entrypoints) is used to link an entry port to a router. Note that the name "nginx" is the name of the router and does not have to match the container name (although it oes make life a bit easier).  
 `-l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)"` - [This](https://docs.traefik.io/routing/routers/#rule) tells Traefik to evaluate the host name (FQDN) that comes on that port. If the name matches this rule, then this router will be used.
-   *Note two things:* (1) Unique name, (2)must be in backticks!
+   *Note two things:* (1) The name must be unique to the rule. (2) It must be in [backticks](#setup-environment-variables)!  
+`-l "traefik.http.services.nginx.loadbalancer.passhostheader=true"` - [This](https://docs.traefik.io/routing/services/#pass-host-header) tells the service attached to the router (used to be known as the *backend*) to pass the Host Header to the container this label is attached to.  
+- So as summary at this point, we hav used a number of labels to say: "Watch port 80 for Host X or Host Y, and pass on the Header".  
+
+The *middleware* can be used to process  data between the Entry point /Rule and Service. In this case, we use it to redirect all HTTP traffic to HTTPS.
+
+The `nginx-websecure` labels follow the same rules, but note the following:  
+`-l "traefik.http.routers.nginx-websecure.tls=true"` - enables TLS options for the Traefik router "nginx-websecure".  
+`-l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt"` - as a further option, Traefik is told to manage teh certificate from the ACME specified in [the config file](#setup-traefik) (here the *letsencrypt* value matches the acme value *letsencrypt*.acme).  
+- These two labels are responsible for mannaging certificates. Of which domains? Those mentioned in the Host(?) rules. If there is a && or ||, all Host names will be included in the certificate requeste: in the [SAN](https://docs.traefik.io/https/acme/#domain-definition).  
+
+**Test** by opening the URL to http://element/matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  
  
 # 6. Postgres db for Matrix 
 [home](#matrix-docker-install)
