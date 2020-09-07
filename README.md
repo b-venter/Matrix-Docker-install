@@ -143,8 +143,10 @@ Let's understand the above code a bit.
 
 2. Creating the container
   You can do this using `docker-compose`, but I have opted for full command line to understand options better and provide verbosity. You can easily take these options into a **yaml** file.
+  
 `docker run -d --restart=unless-stopped --network=web --name=proxy -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/traefik/traefik.toml:/traefik.toml -v /opt/traefik/acme.json:/acme.json traefik:v2.2 --configFile=/traefik.toml`
-  **[docker run](https://docs.docker.com/engine/reference/commandline/run/) options**: You can review all the options, but here is a run down of the most important:
+
+  **[docker run](https://docs.docker.com/engine/reference/commandline/run/) options**: You can review all the options, but here is a run down of the most important:  
   `--restart=unless-stopped` - causes the container to start automatically after errors or a reboot of the Host.  
   `--network=web` - attach the container to the network created earlier.  
   `--name=proxy` - the container and process name.  
