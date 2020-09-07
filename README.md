@@ -217,6 +217,12 @@ That is a long command, so let's break it down a bit:
   3. We mounted volumes (`-v`).
   4. *And we added labels!* (`-l`)...let's chat about those labels.
 
+**[Traefik and Docker Labels](https://docs.traefik.io/providers/docker/#routing-configuration-with-labels)**
+Most use a **docker-compose.yaml**, but to take some of the mystery away from how `dcoker-compose` works, I have presented all as CLI arguments.  
+`-l "traefik.enable=true"` - [This](https://docs.traefik.io/routing/providers/docker/#traefikenable) tells Traefik that you container must be evaluated and routes added.  
+`-l "traefik.http.routers.nginx.entrypoints=web"` - [This](https://docs.traefik.io/routing/routers/#entrypoints) is used to link an entry port to a router. Note that the name "nginx" is the name of the router and does not have to match the container name (although it oes make life a bit easier).  
+`-l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)"` - [This](https://docs.traefik.io/routing/routers/#rule) tells Traefik to evaluate the host name (FQDN) that comes on that port. If the name matches this rule, then this router will be used.
+   *Note two things:* (1) Unique name, (2)must be in backticks!
  
 # 6. Postgres db for Matrix 
 [home](#matrix-docker-install)
@@ -231,5 +237,5 @@ That is a long command, so let's break it down a bit:
 [home](#matrix-docker-install)
 
 # 10. Other references
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
 [Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)
