@@ -343,7 +343,10 @@ You can toggle the *enable_registration* option to control when / if people can 
 [home](#matrix-docker-install)  
 At this point you should have been able create accounts, login with the app and send messages. And if you are on the same network, calling will also work. But calling to fellow accounts on different networks will be a problem. Enter coTURN...
 
-coTURN does not reside on the "web" network. Because of issues encountered with port forwarding, I have located it direct on the ["host" network](https://docs.docker.com/network/host/).
+*client1*<---|--RTP--|-->TURN_SERVER<----|---RTP--|--->*client2*
+
+coTURN does not reside on the "web" network. Because of issues encountered with port forwarding, I have installed it direct on the ["host" network](https://docs.docker.com/network/host/).
+
 
 `sudo mkdir -p /opt/coturn`  
 `sudo vi /opt/coturn/turnserver.conf`  
@@ -381,7 +384,7 @@ denied-peer-ip=172.16.0.0-172.31.255.255
 ```
 Now to install the coTURN container:  
 `docker run -d --restart=unless-stopped --network=host --name=coturn -v /opt/coturn/turnserver.conf:/etc/turnserver.conf -v /opt/certs:/opt -v /opt/coturn/pcap:/tmp instrumentisto/coturn -c /etc/turnserver.conf`
- * This has no labels for Tarefik since we are not using Traefik to proxy anything for it.
+ * This has no labels for Traefik since we are not using Traefik to proxy anything for it.
 
 ### Integrate with SYNAPSE
 `sudo vi /opt/matrix/synapse/homeserver.yaml`  
@@ -397,7 +400,9 @@ And restart synapse container to update the config: `docker restart synapse`
 *You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
-[home](#matrix-docker-install)
+[home](#matrix-docker-install)  
+coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
+ * 
 
 # 10. Other references
 [home](#matrix-docker-install)  
