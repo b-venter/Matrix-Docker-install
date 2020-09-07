@@ -401,8 +401,41 @@ And restart synapse container to update the config: `docker restart synapse`
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
-coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
- * 
+coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitation: 
+ * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
+ * Most ACME agents need to use eith port **80** or **443**.
+
+The solution is:
+1. To have a container whose port 443 is passed directly to it from Traefik using coTURN's URL (*turn.matrix.example.com*).
+2. To share the certificates with coTURN container via a shared volum since they do not share network "web".
+
+To accomplish this, we use a standard **Alpine** image, and install **acme.sh** on it:  
+`docker run -d --restart=unless-stopped --network=web --name=acme -it --expose 443 -l "traefik.enable=true" -l "traefik.tcp.routers.myacme.entrypoints=websecure" -l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)" -l "traefik.tcp.routers.myacme.service=myacme" -l "traefik.tcp.routers.myacme.tls=true" -l "traefik.tcp.routers.myacme.tls.passthrough=true" -l "traefik.tcp.services.myacme.loadbalancer.server.port=443" -v /opt/certs:/opt alpine`  
+
+So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:  
+ - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme"  
+ - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate teh SSL connection by it, but rather pass it through to "acme"  
+ - `--expose 443` - tells docker to expose it on the LAN only on port 443 (normally done automatically as services run, but no service is running on 443)
+ - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
+ 
+ #### To install acme.sh
+ 1. Setup Alpine package manager: `docker exec -ti acme apk update`
+ 2. Install acme.sh: `docker exec -ti acme apk add --upgrade acme.sh`
+ 
+ 
+ Before going further, now is a good time to test that port 443, since **openssl** has been installed with the above command.
+ Test: `docker exec -ti acme openssl s_server -accept 443 -nocert -cipher aNULL`  
+ Now on you own machine / clinet PC: `openssl s_client -connect turn.matrix.example.com:443 -cipher aNULL`
+ Once you have tested that requests are passing direct to your "acme" container, finish requesting the certificates.
+ 
+ 3. `docker exec -ti acme acme.sh --issue --alpn -d turn.matrix.example.com`
+ 
+ ### Make the certificates available to "coturn"
+ 1. `docker exec -ti acme mkdir -p /opt/turn.matrix.example.com`
+ 2. `docker exec -ti acme sh`
+ 3. `cp /root/.acme.sh/turn.matrix.example.com/fullchain.cer /opt/turn.matrix.example.com/`
+ 4. `cp /root/.acme.sh/turn.matrix.example.com/turn.matrix.example.com.key  /opt/turn.matrix.example.com/`
+ *You will need to restart your "coturn" container to detect the new certificates.
 
 # 10. Other references
 [home](#matrix-docker-install)  
