@@ -4,13 +4,13 @@ Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2)
 **Jump to:**  
 [1. Introduction and overview](#1-introduction-and-overview)  
 [2. Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
-3. DNS Setup  
-4. Controlling the Traefik(v2.2)  
-5. NGINX for web (incl. Element)  
-6. Postgres db for Matrix  
-7. Synapse engine  
-8. Overcoming NAT with coTURN  
-9. Adding a standalone ACME for non-HTTP certificates  
+[3. DNS Setup](#3-dns-setup)  
+[4. Controlling the Traefik(v2.2)](#4-controlling-the-traefikv22)  
+[5. NGINX for web (incl. Element)]()  
+[6. Postgres db for Matrix]()  
+[7. Synapse engine]()  
+[8. Overcoming NAT with coTURN]()  
+[9. Adding a standalone ACME for non-HTTP certificates]()  
 
 # 1. Introduction and overview
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic), but I have added a stanalone ACME as well - since coTURN is not behind Traefik, has no web service but we need a way to get certificates for TLS.
@@ -156,3 +156,13 @@ Let's understand the above code a bit.
   Final note: if you want to access the API and have enabled it in the config file, also rememebr to pass '-p 8080:8080' when creating the container.
 
 3. Run `docker ps` to see that it is running, and that the ports have been passed to it.
+
+# 5. NGINX for web (incl. Element)
+
+# 6. Postgres db for Matrix
+
+# 7. Synapse engine
+
+# 8. Overcoming NAT with coTURN
+
+# 9. Adding a standalone ACME for non-HTTP certificates
