@@ -126,8 +126,8 @@ Add the following code to **traefik.toml**:
 
 [certificatesResolvers.letsencrypt.acme]
   email = "test@example.com"
-  #caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
-  caServer = "https://acme-v02.api.letsencrypt.org/directory"
+  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+  #caServer = "https://acme-v02.api.letsencrypt.org/directory"
   storage = "acme.json"                 
   [certificatesResolvers.letsencrypt.acme.tlsChallenge]
   
@@ -135,8 +135,8 @@ Add the following code to **traefik.toml**:
   #dashboard = true
   #insecure = true
 ```
-Let's understand the above code a bit.
+Let's understand the above code a bit.  
+***[Entry Points](https://docs.traefik.io/routing/entrypoints/):*** This assigns ports that Traefik will monitor to a named variable and declare the protocol (by default, TCP). In the above configuration, we have two entry points (Port *80*, TCP belongs to entry point *web*, Port *443*, TCP belongs to entry point *websecure*). In addition, we reroute port *80* to the entry point *"websecure"*. This redirects all HTTP requests to HTTPS.  
+***[Providers](https://docs.traefik.io/routing/providers/docker/#configuration-examples):*** Used to help Traefik implement docker provider specifics. Although we are using RancherOS, we are not using Rancher. We are using RancherOS as a lightweight docker host. But our containers are deployed with docker.  
+***[ACME](https://docs.traefik.io/https/acme/):*** Used for automatic certificate management. Traefik will apply for and maintain your certificates. My example uses Let's Encrypt. Note that the *staging* server is enabled and the *production* is hashed out. This is to allow you to get the certificates and routing sorted without hitting the *production's* cap. Since we are storing the certificates in an atatched volume, even if you remove and re-add the Traefik container, the certificates will not be automatically deleted.  
 
-***[Entry Points](https://docs.traefik.io/routing/entrypoints/):*** This assigns ports that Traefik will monitor to a named variable and declare the protocol (by default, TCP). In the above configuration, we have two entry points (Port *80*, TCP belongs to entry point *web*, Port *443*, TCP belongs to entry point *websecure*). In addition, we reroute port *80* to the entry point *"websecure"*. This redirects all HTTP requests to HTTPS.
-
-***[Providers](https://docs.traefik.io/routing/providers/docker/#configuration-examples):***
