@@ -61,10 +61,10 @@ An easy guide is found on the Rancher website [here](https://rancher.com/docs/os
 ssh_authorized_keys:
   - ssh-rsa AAA...
 ``` 
-   Note that the file must include the *#cloud-config*. You can find your ssh keys by running the command `cat ~/.ssh/id_rsa.pub`.
- 3. Boot from the downloaded RancherOS iso. When it starts up you will be autmatically logged.
- 4. Before commencing with the install, copy the **cloud-config.yml** file. I use `wget` to download it from a web server (obviously you would not leave it thereonce you have downloaded it!!).
- 5. Now the install can commence. Run `sudo ros install -c cloud-config.yml -d /dev/sda` to install to disk. Once it reboots, you can no longer log in via the console, but need to use SSH (hence the reason you had to copy the file across).
+  Note that the file must include the *#cloud-config*. You can find your ssh keys by running the command `cat ~/.ssh/id_rsa.pub`.  
+3. Boot from the downloaded RancherOS iso. When it starts up you will be autmatically logged.  
+4. Before commencing with the install, copy the **cloud-config.yml** file. I use `wget` to download it from a web server (obviously you would not leave it thereonce you have downloaded it!!).  
+5. Now the install can commence. Run `sudo ros install -c cloud-config.yml -d /dev/sda` to install to disk. Once it reboots, you can no longer log in via the console, but need to use SSH (hence the reason you had to copy the file across).
    There are ways of setting a password. Just use Google...
    
 ## First step - create the network
