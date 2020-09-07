@@ -1,9 +1,9 @@
 # Matrix-Docker-install
 Installing full Matrix, Element (Riot) and coTURN with Docker and Traefik(v2.2)
 
-Jump to:  
-[1. Introduction and overview](./#1-introduction-and-overview)  
-[2. Docker by means of RancherOS](./#2-docker-by-means-of-rancheros)  
+**Jump to:**  
+[1. Introduction and overview](#1-introduction-and-overview)  
+[2. Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
 3. DNS Setup  
 4. Controlling the Traefik(v2.2)  
 5. NGINX for web (incl. Element)  
