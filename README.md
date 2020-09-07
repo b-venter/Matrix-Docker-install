@@ -386,7 +386,7 @@ Now to install the coTURN container:
 `docker run -d --restart=unless-stopped --network=host --name=coturn -v /opt/coturn/turnserver.conf:/etc/turnserver.conf -v /opt/certs:/opt -v /opt/coturn/pcap:/tmp instrumentisto/coturn -c /etc/turnserver.conf`
  * This has no labels for Traefik since we are not using Traefik to proxy anything for it.
 
-### Integrate with SYNAPSE
+#### Integrate with SYNAPSE
 `sudo vi /opt/matrix/synapse/homeserver.yaml`  
 Edit the following area:
 ```
@@ -398,6 +398,10 @@ turn_user_lifetime: 86400000
 ```
 And restart synapse container to update the config: `docker restart synapse`  
 *You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*
+
+#### Enabling TLS
+1. See [Standalone ACME](#9-adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates.
+2. 
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
@@ -414,8 +418,8 @@ To accomplish this, we use a standard **Alpine** image, and install **acme.sh** 
 
 So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:  
  - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme"  
- - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate teh SSL connection by it, but rather pass it through to "acme"  
- - `--expose 443` - tells docker to expose it on the LAN only on port 443 (normally done automatically as services run, but no service is running on 443)
+ - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate the SSL connection by it, but rather pass it through to "acme"  
+ - `--expose 443` - tells docker to expose on the LAN only port 443 (normally done automatically as services run, but no service is running on 443)
  - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
  
  #### To install acme.sh
@@ -430,7 +434,7 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  
  3. `docker exec -ti acme acme.sh --issue --alpn -d turn.matrix.example.com`
  
- ### Make the certificates available to "coturn"
+ #### Make the certificates available to "coturn"
  1. `docker exec -ti acme mkdir -p /opt/turn.matrix.example.com`
  2. `docker exec -ti acme sh`
  3. `cp /root/.acme.sh/turn.matrix.example.com/fullchain.cer /opt/turn.matrix.example.com/`
