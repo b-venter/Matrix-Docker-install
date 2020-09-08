@@ -53,7 +53,7 @@ Setting up RancherOS is super simple with Digital Ocean:
 1. Create droplet > Container distributions > Select RancherOS
 2. For a small install, I used 2GB / 1CPU / 50GB SSD / 2TB tansfer option
 3. Select datacenter location
-4. NB!! Add SSH keys (you can only login to RancherOS with SSH
+4. NB!! Add SSH keys (you can only login to RancherOS with SSH trusted keys)
 5. Finish creating your droplet. SSH to it by `ssh rancher@ip.ad.re.ss`
 
 ## Bare metal / VirtualBox, etc
