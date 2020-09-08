@@ -16,13 +16,13 @@ Much of what I post here was gained with information from Jon Neverland's posts 
 [10. Other references](#10-other-references)  
 
 # 1. Introduction and overview
-Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic), but I have added a stanalone ACME as well - since coTURN is not behind Traefik, has no web service but we need a way to get certificates for TLS.
-Behind that runs the typical Matrix setup:
+Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic). I also added a standalone ACME - since coTURN is not behind Traefik, has no web service but needs a certificate for TLS.
+Behind Traefik runs the typical Matrix setup:
 - PostgreSQL
 - Synapse
-- Nginx serving Synapse and Element
+- Nginx serving Synapse and Element pages
 The final piece is only required for voice and video calls: coTURN
-Note that this setup does not include federation to otehr matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.
+Note that this setup does not include federation to other matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.
 
 This is diagrammed below:
 
@@ -65,13 +65,13 @@ An easy guide is found on the Rancher website [here](https://rancher.com/docs/os
 ssh_authorized_keys:
   - ssh-rsa AAA...
 ``` 
-  Note that the file must include the *#cloud-config*. You can find your ssh keys by running the command `cat ~/.ssh/id_rsa.pub`.  
-3. Boot from the downloaded RancherOS iso. When it starts up you will be autmatically logged.  
-4. Before commencing with the install, copy the **cloud-config.yml** file. I use `wget` to download it from a web server (obviously you would not leave it thereonce you have downloaded it!!).  
+  Note that the file must include the *#cloud-config*. You can find your local machine's ssh keys by running the command `cat ~/.ssh/id_rsa.pub`.  
+3. Boot from the downloaded RancherOS iso. When it starts up you will be automatically logged in.  
+4. Before commencing with the install, copy the **cloud-config.yml** file. I use `wget` to download it from a web server (obviously you would not leave it there once you have downloaded it!!).  
 5. Now the install can commence. Run `sudo ros install -c cloud-config.yml -d /dev/sda` to install to disk. Once it reboots, you can no longer log in via the console, but need to use SSH (hence the reason you had to copy the file across).
    There are ways of setting a password. Just use Google...
    
-## First step - create the network
+#### First step - create the network
 Use the command `docker network create web` to create the network called "web". (See diagram above).
  
  # 3. DNS Setup 
@@ -89,18 +89,20 @@ IP | URL | Service that will be using it
 # 4. Controlling the Traefik(v2.2) 
 [home](#matrix-docker-install)
 ### Setup environment variables
-This is to make your life easier. Traefik requires the domain names to be indicated with backticks. If you use a **yml** file, that is no problem, but if you are passing the arguments directly on the command line shell (*which is how I am doing it here*), then the shell will interprest teh backticks. So, rather set them as environment variables, e.g.:
+This is to make your life easier. Traefik requires the domain names to be indicated with backticks. If you use a **yml** file, that is no problem, but if you are passing the arguments directly on the command line shell (*which is how I am doing it here*), then the shell will interpret the backticks and break things. So, rather set them as environment variables e.g.:
 ```
 export MY_DOMAIN=\`matrix.example.com\`
 export MY_DOMAIN_ALT=matrix.example.com
 export MY_DOMAIN_SYN=\`synapse.matrix.example.com\`
 export MY_DOMAIN_RIO=\`element.matrix.example.com\`
 export MY_DOMAIN_COT=\`turn.matrix.example.com\`
+
+echo $MY_DOMAIN
 ```
 
 ### Setup Traefik
-This [v1-to-v2](https://docs.traefik.io/migration/v1-to-v2/) reference may come in handy to those using <v2.
-1. Create the folders and files that will be mounted as volumes to Taefik's container.
+This [v1-to-v2](https://docs.traefik.io/migration/v1-to-v2/) reference may come in handy to those used to <v2.
+1. Create the folders and files that will be mounted as volumes to Traefik's container.
 ```
 sudo mkdir /opt/traefik
 sudo touch /opt/traefik/acme.json
@@ -142,14 +144,14 @@ Add the following code to **traefik.toml**:
   #insecure = true
 ```
 Let's understand the above code a bit.  
-***[Entry Points](https://docs.traefik.io/routing/entrypoints/):*** This assigns ports that Traefik will monitor to a named variable and declare the protocol (by default, TCP). In the above configuration, we have two entry points (Port *80*, TCP belongs to entry point *web*, Port *443*, TCP belongs to entry point *websecure*). In addition, we reroute port *80* to the entry point *"websecure"*. This redirects all HTTP requests to HTTPS.  
+***[Entry Points](https://docs.traefik.io/routing/entrypoints/):*** This assigns ports that Traefik will monitor to a named variable and declare the protocol (by default, TCP). In the above configuration, we have two entry points (Port *80*, TCP belongs to entry point *web*, Port *443*, TCP belongs to entry point *websecure*). In addition, we redirect port *80* to the entry point *"websecure"*. This redirects all HTTP requests to HTTPS.  
 ***[Providers](https://docs.traefik.io/routing/providers/docker/#configuration-examples):*** Used to help Traefik implement docker provider specifics. Although we are using RancherOS, we are not using Rancher. We are using RancherOS as a lightweight docker host. But our containers are deployed with docker.  
-***[ACME](https://docs.traefik.io/https/acme/):*** Used for automatic certificate management. Traefik will apply for and maintain your certificates. My example uses Let's Encrypt. Note that the *staging* server is enabled and the *production* is hashed out. This is to allow you to get the certificates and routing sorted without hitting the *production's* cap. Since we are storing the certificates in an atatched volume, even if you remove and re-add the Traefik container, the certificates will not be automatically deleted.  
+***[ACME](https://docs.traefik.io/https/acme/):*** Used for automatic certificate management. Traefik will apply for and maintain your certificates. My example uses Let's Encrypt. Note that the *staging* server is enabled and the *production* is hashed out. This is to allow you to get the certificates and routing sorted without hitting the *production's* cap. Since we are storing the certificates in an attached volume, even if you remove and re-add the Traefik container, the certificates will not be automatically deleted.  
 ***[API](https://docs.traefik.io/operations/api/):*** This provides a web interface which can be useful to understanding how Traefik works, what is running, etc. It is disabled in the above file as I do not recommend using it in production, but feel free to enable it when testing on VirtualBox or similar safe environments. It is reachable on port 8080 by default.  
 
 
 2. Creating the container
-  You can do this using `docker-compose`, but I have opted for full command line to understand options better and provide verbosity. You can easily take these options into a **yaml** file.
+  You can do this using `docker-compose`, but I have opted for full command line to understand the options better and provide verbosity. You can easily take these options into a **yaml** file.
   
 `docker run -d --restart=unless-stopped --network=web --name=proxy -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/traefik/traefik.toml:/traefik.toml -v /opt/traefik/acme.json:/acme.json traefik:v2.2 --configFile=/traefik.toml`
 
@@ -159,14 +161,14 @@ Let's understand the above code a bit.
   `--name=proxy` - the container and process name.  
   `-v` - attach/mount local folders/files to the container.  
   `-p 80:80 -p 443:443` - expose these ports from the host to the container. So anything that reaches the host on ports 80 or 443 will be presented to **proxy** (the name of our Traefik container).  
-  `--configFile=/traefik.toml` - Placing an option after the container is specified allows you to pass commands or argumants to it. In this case, we are advising Traefik to read the config file we have mounted to it.  
+  `--configFile=/traefik.toml` - Placing an option after the container allows you to pass commands or arguments to it. In this case, we are advising Traefik to read the config file we have mounted to it.  
   Final note: if you want to access the API and have enabled it in the config file, also rememebr to pass '-p 8080:8080' when creating the container.
 
 3. Run `docker ps` to see that it is running, and that the ports have been passed to it.
 
 # 5. NGINX for web (incl. Element) 
 [home](#matrix-docker-install)  
-## First some prep work
+### First some prep work
 Why are we adding Nginx before Synapse? It gives an easy to use, little config, method to test our Traefik proxy and more.
 Let's start with creating the files and volumes for Nginx:  
 ```
@@ -174,9 +176,9 @@ sudo mkdir -p /opt/matrix/nginx/riot
 sudo mkdir /opt/matrix/nginx/riot/config
 sudo mkdir /opt/matrix/nginx/riot/versions
 ```
-Then download the latest [Element (Riot)](https://github.com/vector-im/riot-web/releases) code. I found that un-tar'ing the code was a mission on RancherOS. So instead I:
-1. Downloaded it to my machine, un-tar'ed it and then zip'd it.  
-2. Copied the zip to the container (scp) and moved it to **/opt/matrix/nginx/riot/versions**.  
+Then download the latest [Element (Riot)](https://github.com/vector-im/riot-web/releases) code. I found that un-tar'ing the code was a mission on RancherOS. So instead:
+1. Download it to my local machine, un-tar it and then zip it.  
+2. Copy the zip to the container (e.g. scp) and move it to **/opt/matrix/nginx/riot/versions**.  
 3. `unzip` the compressed files.  
 
 `sudo ln -s /opt/matrix/nginx/riot/versions/riot-v1.7.5-rc.1 /opt/matrix/nginx/riot/riot-web`  
@@ -185,7 +187,7 @@ This will allow you change versions merely by updating the symlink.
 sudo cp /opt/matrix/nginx/riot/riot-web/config.sample.json /opt/matrix/nginx/riot/config/config.json
 sudo vi /opt/matrix/nginx/riot/config/config.json
 ```
-Edit the following code in **config.json** to get Element's setup to synapse prepared:
+Edit the following code in **config.json** to get Element's setup to Synapse prepared:
 ```
 "m.homeserver": {                                  
             "base_url": "https://synapse.matrix.example.com",        
@@ -204,16 +206,16 @@ Edit the following code in **config.json** to get Element's setup to synapse pre
  ```
  server {
   listen        80;
-  server_name   $MY_DOMAIN_RIO;
+  server_name   element.matrix.example.com;
     root /usr/share/nginx/html/;
 }
 ```
 
-## And now for the fun part - adding the docker image!
+### And now for the fun part - adding the docker image!
 `docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json nginx`  
 That is a long command, so let's break it down a bit:  
   **docker run** options:  
-  1. We also connnect to network "web" created earlier.
+  1. We also connnect it to network "web" created earlier.
   2. We named is "nginx".
   3. We mounted volumes (`-v`).
   4. *And we added labels!* (`-l`)...let's chat about those labels.
@@ -221,18 +223,18 @@ That is a long command, so let's break it down a bit:
 **[Traefik and Docker Labels](https://docs.traefik.io/providers/docker/#routing-configuration-with-labels)**
 Most use a **docker-compose.yaml**, but to take some of the mystery away from how `dcoker-compose` works, I have presented all as CLI arguments.  
 `-l "traefik.enable=true"` - [This](https://docs.traefik.io/routing/providers/docker/#traefikenable) tells Traefik that you container must be evaluated and routes added.  
-`-l "traefik.http.routers.nginx.entrypoints=web"` - [This](https://docs.traefik.io/routing/routers/#entrypoints) is used to link an entry port to a router. Note that the name "nginx" is the name of the router and does not have to match the container name (although it oes make life a bit easier).  
-`-l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)"` - [This](https://docs.traefik.io/routing/routers/#rule) tells Traefik to evaluate the host name (FQDN) that comes on that port. If the name matches this rule, then this router will be used.
-   *Note two things:* (1) The name must be unique to the rule. (2) It must be in [backticks](#setup-environment-variables)!  
+`-l "traefik.http.routers.nginx.entrypoints=web"` - [This](https://docs.traefik.io/routing/routers/#entrypoints) is used to link an entry port to a router. Note that the name "nginx" is the name of the router and does not have to match the container name (although it does make life a bit easier).  
+`-l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)"` - [This](https://docs.traefik.io/routing/routers/#rule) tells Traefik to evaluate the host name (FQDN) that comes on that port. If the name matches this rule, then this router will be used. `&&` for AND, `||` for OR.  
+   *Note two things:* (1) The Host name must be unique to the rule. (2) It must be in **[backticks](#setup-environment-variables)!**  
 `-l "traefik.http.services.nginx.loadbalancer.passhostheader=true"` - [This](https://docs.traefik.io/routing/services/#pass-host-header) tells the service attached to the router (used to be known as the *backend*) to pass the Host Header to the container this label is attached to.  
-- So as summary at this point, we hav used a number of labels to say: "Watch port 80 for Host X or Host Y, and pass on the Header".  
+- So as a summary at this point, we have used a number of labels to say: "Watch port 80 for Host X or Host Y, and pass on the Header".  
 
 The *middleware* can be used to process  data between the Entry point /Rule and Service. In this case, we use it to redirect all HTTP traffic to HTTPS.
 
 The `nginx-websecure` labels follow the same rules, but note the following:  
-`-l "traefik.http.routers.nginx-websecure.tls=true"` - enables TLS options for the Traefik router "nginx-websecure".  
-`-l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt"` - as a further option, Traefik is told to manage teh certificate from the ACME specified in [the config file](#setup-traefik) (here the *letsencrypt* value matches the acme value *letsencrypt*.acme).  
-- These two labels are responsible for mannaging certificates. Of which domains? Those mentioned in the Host(?) rules. If there is a && or ||, all Host names will be included in the certificate requeste: in the [SAN](https://docs.traefik.io/https/acme/#domain-definition).  
+`-l "traefik.http.routers.nginx-websecure.tls=true"` - enables TLS options for the Traefik router "nginx-websecure". It iwll also terminate TLs, meaning it will pass non-TLS traffic to the container unless specified otherwise.  
+`-l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt"` - as a further option, Traefik is told to manage the certificate from the ACME specified in [the config file](#setup-traefik) (here the *letsencrypt* value matches the acme value *letsencrypt*.acme).  
+- These two labels are responsible for mannaging certificates. Of which domains? Those mentioned in the Host(?) rules. If there is a && or ||, all Host names will be included in the single certificate requested: in the [SAN](https://docs.traefik.io/https/acme/#domain-definition).  
 
 **Test** by opening the URL to http://element/matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  Your test should reveal:
 1. That http is redirected to htttps
@@ -242,7 +244,7 @@ The `nginx-websecure` labels follow the same rules, but note the following:
 ***If all is good:***
  * Stop the container for Traefik (`docker stop proxy`)
  * Edit the traefik.toml (`sudo vi /opt/traefik/traefik.toml`)
- * Hash-out the staging CA and uncomment the production server.
+ * Hash-out the staging CA and uncomment the production CA server.
  * Delete, recreate and chmod **acme.json** file to remove the test certificates
  * Start Traefik (`docker start proxy`)
  * Reload your page and you should have a valid certificate.
@@ -255,7 +257,7 @@ Matrix requires a database to store conversations, etc. You can use the built in
 2. Create the docker container: `docker run -d --restart=unless-stopped --network=web --name=postgres -v /opt/matrix/pgdata:/var/lib/postgresql/data -l "traefik.enable=false" --env POSTGRES_PASSWORD=SomeMassivelyLongPassword --env POSTGRES_USER=synapse postgres:9.6.4`
 3. A database is created, but not with the specifications we want, so:
  * Connect to the container's psql with the user you specified in 'POSTGRES_USER': `docker exec -it postgres psql -U synapse`
- * Create a suitable database (change the DATABASE name and OWNER to your install or just use as I did):
+ * Create a suitable database (change the DATABASE name and OWNER as per your install, or just use as I did):
  ```
  CREATE DATABASE matrix
  ENCODING 'UTF8'
@@ -301,9 +303,6 @@ database:
     user: synapse
     password: SomeMassivelyLongPassword
     database: matrix
-
-    # This hostname is accessible through the docker network and is set 
-    # by docker-compose. If you change the name of the service it will be different
     host: postgres
 
 enable_registration: true
@@ -311,7 +310,7 @@ enable_registration: true
 * Since it's running in a container we need to listen to 0.0.0.0. The port is only exposed on the host and put behind reverse proxy.
 * *psycopg2* is a python postgres connector that needs to be specified as it.
 * User and Password was specified when creating the [PostgreSQL container](https://github.com/b-venter/Matrix-Docker-install/blob/master/README.md#6-postgres-db-for-matrix).
-* The database refers to the host/container name of the PostgreSQL container.
+* The database 'host' parameter refers to the host/container name of the PostgreSQL container.
 
 **Nginx** needs to be updated `sudo vi /opt/matrix/nginx/matrix.conf` by prepending the following:
 ```
@@ -334,7 +333,7 @@ Restart all affected containers:
 * `docker restart nginx`
 * `docker restart synapse`
 
-You can toggle the *enable_registration* option to control when / if people can create an account. Just restart the *synapse* ccontainer to re-read the config.
+You can toggle the *enable_registration* option to control when / if people can create an account. Just restart the *synapse* container to re-read the config.
 
 **Time to test:** Load the synapse.matrix.exmple.com URL - you should get a confirmation page that matrix is up and running. Then load the Element URL (element.matrix.example.com) and choose "Create Account". You will either be able to create an account or will get a message saying "Registration is disabled".
 
@@ -418,21 +417,22 @@ Remember to restart synapse: `docker restart synapse` and to force restart your 
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
-coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitation: 
+coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
  * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
  * Most ACME agents need to use eith port **80** or **443**.
 
 The solution is:
 1. To have a container whose port 443 is passed directly to it from Traefik using coTURN's URL (*turn.matrix.example.com*).
-2. To share the certificates with coTURN container via a shared volum since they do not share network "web".
+2. To share the certificates with coTURN container via a shared volume since they do not share network "web".
 
 To accomplish this, we use a standard **Alpine** image, and install **acme.sh** on it:  
 `docker run -d --restart=unless-stopped --network=web --name=acme -it --expose 443 -l "traefik.enable=true" -l "traefik.tcp.routers.myacme.entrypoints=websecure" -l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)" -l "traefik.tcp.routers.myacme.service=myacme" -l "traefik.tcp.routers.myacme.tls=true" -l "traefik.tcp.routers.myacme.tls.passthrough=true" -l "traefik.tcp.services.myacme.loadbalancer.server.port=443" -v /opt/certs:/opt alpine`  
 
 So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:  
- - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme"  
+ - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme".  
+ Note that this is a *tcp* router, not http or https.  
  - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate the SSL connection by it, but rather pass it through to "acme"  
- - `--expose 443` - tells docker to expose on the LAN only port 443 (normally done automatically as services run, but no service is running on 443)
+ - `--expose 443` - tells docker to expose on the LAN port 443 (normally done automatically as services run, but no service is running on 443)
  - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
  
  #### To install acme.sh
@@ -452,7 +452,8 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  2. `docker exec -ti acme sh`
  3. `cp /root/.acme.sh/turn.matrix.example.com/fullchain.cer /opt/turn.matrix.example.com/`
  4. `cp /root/.acme.sh/turn.matrix.example.com/turn.matrix.example.com.key  /opt/turn.matrix.example.com/`
- *You will need to restart your "coturn" container to detect the new certificates.
+ *You will need to restart your "coturn" container to detect the new certificates.*  
+ `docker logs coturn` will show whether coTURN has detected and accepted the certificate and key.
 
 # 10. Other references
 [home](#matrix-docker-install)  
@@ -463,9 +464,6 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
 [Synapse and TURN](https://github.com/matrix-org/synapse/blob/master/docs/turn-howto.md)  
 [Traefik v1 to v2](https://docs.traefik.io/migration/v1-to-v2/)  
 [Synapse on Docker](https://github.com/matrix-org/synapse/blob/master/docs/turn-howto.md)  
-
-
-
 
 # 11. Open issues
 #### WebRTC and coTURN
