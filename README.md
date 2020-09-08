@@ -414,7 +414,7 @@ pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
 turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
 ```
 Remember to restart synapse: `docker restart synapse` and to force restart your Element app.
-**NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See 
+**NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
@@ -456,8 +456,18 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
 
 # 10. Other references
 [home](#matrix-docker-install)  
-[Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)
+[Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)  
+[TURN Server example](https://www.informaticar.net/install-turn-server-for-synapse-matrix-on-centos-rhel/)  
+[Matrix guides](https://matrix.org/docs/develop/)  
+[coturn github](https://github.com/coturn/coturn/wiki/turnserver)  
+[Synapse and TURN](https://github.com/matrix-org/synapse/blob/master/docs/turn-howto.md)  
+[Traefik v1 to v2](https://docs.traefik.io/migration/v1-to-v2/)  
+[Synapse on Docker](https://github.com/matrix-org/synapse/blob/master/docs/turn-howto.md)  
+
+
 
 
 # 11. Open issues
 #### WebRTC and coTURN
+https://bugs.chromium.org/p/webrtc/issues/detail?id=11710&q=label%3AEngTriaged  
+https://groups.google.com/g/discuss-webrtc/c/4MmARU0XYqc?pli=1  
