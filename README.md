@@ -348,6 +348,7 @@ At this point you should have been able create accounts, login with the app and 
 coTURN does not reside on the "web" network. Because of issues encountered with port forwarding, I have installed it direct on the ["host" network](https://docs.docker.com/network/host/).
 
 
+`sudo mkdir -p /opt/certs`  
 `sudo mkdir -p /opt/coturn`  
 `sudo vi /opt/coturn/turnserver.conf`  
 
@@ -394,14 +395,26 @@ Edit the following area:
 turn_uris: [ "turn:turn.matrix.example.com?transport=tcp", "turns:turn.matrix.example.com?transport=tcp" ]
 turn_shared_secret: "AgainCreatedByAPasswordGenerator"
 turn_user_lifetime: 86400000
-#turn_allow_guests: false
+turn_allow_guests: true
 ```
 And restart synapse container to update the config: `docker restart synapse`  
 *You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*
 
 #### Enabling TLS
 1. See [Standalone ACME](#9-adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates.
-2. 
+2. Remove the hashes in `sudo vi /opt/matrix/synapse/homeserver.yaml` for TLS
+```
+# For Let's Encrypt certificates, use `fullchain.pem` here.
+cert=/opt/turn.matrix.example.com/fullchain.cer
+# TLS private key file
+pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
+```
+3. You can force only TLS communication in the same file by changing the TURN URI to only use Secure TURN (default port of TURNS is 5349):
+```
+turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
+```
+Remember to restart synapse: `docker restart synapse` and to force restart your Element app.
+**NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See 
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
@@ -444,3 +457,7 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
 # 10. Other references
 [home](#matrix-docker-install)  
 [Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)
+
+
+# 11. Open issues
+#### WebRTC and coTURN
