@@ -236,7 +236,7 @@ The `nginx-websecure` labels follow the same rules, but note the following:
 `-l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt"` - as a further option, Traefik is told to manage the certificate from the ACME specified in [the config file](#setup-traefik) (here the *letsencrypt* value matches the acme value *letsencrypt*.acme).  
 - These two labels are responsible for mannaging certificates. Of which domains? Those mentioned in the Host(?) rules. If there is a && or ||, all Host names will be included in the single certificate requested: in the [SAN](https://docs.traefik.io/https/acme/#domain-definition).  
 
-**Test** by opening the URL to http://element/matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  Your test should reveal:
+**Test** by opening the URL to http://element.matrix.example.com. For errors, run `docker logs proxy` or `docker logs nginx`.  Your test should reveal:
 1. That http is redirected to htttps
 2. The certificate is from Let's Encrypt staging ("FAKE")[See link](https://letsencrypt.org/docs/staging-environment/#root-certificate)
 3. And Nginx is serving your web page.
