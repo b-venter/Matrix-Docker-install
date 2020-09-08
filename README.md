@@ -412,8 +412,8 @@ pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
 ```
 turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
 ```
-Remember to restart synapse: `docker restart synapse` and to force restart your Element app.
-**NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).
+Remember to restart synapse: `docker restart synapse` and to force restart your Element app.  
+***NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).*
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
 [home](#matrix-docker-install)  
