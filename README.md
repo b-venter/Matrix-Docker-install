@@ -419,7 +419,7 @@ Remember to restart synapse: `docker restart synapse` and to force restart your 
 [home](#matrix-docker-install)  
 coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
  * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
- * Most ACME agents need to use eith port **80** or **443**.
+ * Most ACME agents need to use either port **80** or **443**.
 
 The solution is:
 1. To have a container whose port 443 is passed directly to it from Traefik using coTURN's URL (*turn.matrix.example.com*).
