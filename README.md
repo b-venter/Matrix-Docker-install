@@ -3,7 +3,7 @@
 
 Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
-**Contents:**  
+#### Contents:
 1. [Introduction and overview](#1-introduction-and-overview)  
 2. [Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
 3. [DNS Setup](#3-dns-setup)  
