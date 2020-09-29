@@ -1,5 +1,5 @@
 # Matrix homeserver with Docker and Traefik(2.2)
-Installing full Matrix, Element (Riot) and coTURN and Traefik(v2.2) with Docker on RancherOS
+[Dockerising](https://www.docker.com/) a full [Matrix](https://matrix.org/), [Element (Riot)](https://element.io/) with [coTURN](https://github.com/coturn/coturn), [Traefik(v2.2)](https://traefik.io/traefik/) on [RancherOS](https://rancher.com/docs/os/v1.x/en/) and [Digital Ocean](https://www.digitalocean.com/).
 
 Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
