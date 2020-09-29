@@ -39,15 +39,9 @@ Note that [delegation](https://github.com/matrix-org/synapse/blob/master/docs/de
 ### Docker socket access
 It is just good practice to secure access to the docker socket so as to reduce the possibility that a container can be used to reach the host. However, since Traefik requires access to the docker socket - and it is Internet facing - even more diligence is needed.Therefore, we will:
 1. Using Tecnativa's "Docker Socket proxy"
-2. Enable TLS access to docker
+2. Set Traefik to connect via Docker Socket proxy
 
 ### [Tecnativa's "Docker Socket proxy"](https://github.com/Tecnativa/docker-socket-proxy)
 
 
-### Enabling TLS access to docker
-The [Docker document](https://docs.docker.com/engine/security/https/) provides much of the basis for enabling TLS. However, using RancherOS simplifies this (you can refer to this [link](https://rancher.com/docs/os/v1.x/en/configuration/setting-up-docker-tls/) as well).  
-```
-sudo ros config set rancher.docker.tls true
-sudo ros tls gen --server -H localhost -H <hostname1> -H <hostname2> ... -H <hostnameN>
-sudo system-docker restart docker
-```
+### [Traefik - Docker Socket via proxy](https://chriswiegman.com/2019/11/protecting-your-docker-socket-with-traefik-2/)
