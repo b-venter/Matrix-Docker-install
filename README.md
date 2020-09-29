@@ -1,5 +1,5 @@
 # Matrix homeserver with Docker and Traefik(2.2)
-[Dockerising](https://www.docker.com/) a full [Matrix](https://matrix.org/), [Element (Riot)](https://element.io/) with [coTURN](https://github.com/coturn/coturn), [Traefik(v2.2)](https://traefik.io/traefik/) on [RancherOS](https://rancher.com/docs/os/v1.x/en/) and [Digital Ocean](https://www.digitalocean.com/).
+[Dockerising](https://www.docker.com/) a full [Matrix](https://matrix.org/) server with [Element (Riot)](https://element.io/) messaging, [coTURN](https://github.com/coturn/coturn) NAT traversal and [Traefik(v2.2)](https://traefik.io/traefik/) proxy on [RancherOS](https://rancher.com/docs/os/v1.x/en/) and [Digital Ocean](https://www.digitalocean.com/).
 
 Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
