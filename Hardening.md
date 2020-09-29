@@ -41,7 +41,7 @@ It is just good practice to secure access to the docker socket so as to reduce t
 1. Using Tecnativa's "Docker Socket proxy"
 2. Set Traefik to connect via Docker Socket proxy
 
-### [Tecnativa's "Docker Socket proxy"](https://github.com/Tecnativa/docker-socket-proxy)
+#### [Tecnativa's "Docker Socket proxy"](https://github.com/Tecnativa/docker-socket-proxy)
 The idea is that the **socket proxy** be connected to via a non-public linked network. So:  
 `docker network create private`  
 Next, we install the **socket proxy** container:
@@ -51,7 +51,7 @@ Regarding the above:
 * `--env` We have set a environment variable that will allow queries relating to CONTAINERS [as per Tecnativa](https://github.com/Tecnativa/docker-socket-proxy#not-always-needed) and [Docker API](https://docs.docker.com/engine/api/v1.40/#operation/ContainerList).  
 * `-v` Naturally, this container needs to connect to Docker Socket.  
 
-### [Traefik - Docker Socket via proxy](https://chriswiegman.com/2019/11/protecting-your-docker-socket-with-traefik-2/)
+#### [Traefik - Docker Socket via proxy](https://chriswiegman.com/2019/11/protecting-your-docker-socket-with-traefik-2/)
 Now on to modifying Traefik:  
 `sudo vi /opt/traefik/traefik.toml`  
 Ensure it contains the following:  
@@ -72,7 +72,7 @@ Note that:
 * The Docker socket is no longer mounted as a *volume*.
 * The **proxy** container is conencted to ***two*** networks.
 
-### Testing
+#### Testing
 You can (1) add ***curl*** to the Traefik container or (2) install a temporary container. Below uses option 2:  
 `docker run -d --restart=unless-stopped -it --name alpine --network=private alpine`  
 `docker exec -ti alpine apk update`  
