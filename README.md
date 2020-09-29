@@ -3,17 +3,17 @@
 
 Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
-**Jump to:**  
-[1. Introduction and overview](#1-introduction-and-overview)  
-[2. Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
-[3. DNS Setup](#3-dns-setup)  
-[4. Controlling the Traefik(v2.2)](#4-controlling-the-traefikv22)  
-[5. NGINX for web (incl. Element)](#5-nginx-for-web-incl-element)  
-[6. Postgres db for Matrix](#6-postgres-db-for-matrix)  
-[7. Synapse engine](#7-synapse-engine)  
-[8. Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
-[9. Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
-[10. Other references](#10-other-references)  
+**Contents:**  
+1. [Introduction and overview](#1-introduction-and-overview)  
+2. [Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
+3. [DNS Setup](#3-dns-setup)  
+4. [Controlling the Traefik(v2.2)](#4-controlling-the-traefikv22)  
+5. [NGINX for web (incl. Element)](#5-nginx-for-web-incl-element)  
+6. [Postgres db for Matrix](#6-postgres-db-for-matrix)  
+7. [Synapse engine](#7-synapse-engine)  
+8. [Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
+9. [Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
+10. [Other references](#10-other-references)  
 
 # 1. Introduction and overview
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic). I also added a standalone ACME - since coTURN is not behind Traefik, has no web service but needs a certificate for TLS.
@@ -25,7 +25,7 @@ The final piece is only required for voice and video calls: coTURN
 Note that this setup does not include federation to other matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.
 
 This is diagrammed below:
-
+```
                           22   (80,443)                (All other ports)
         -------------------|----|-------------------------------|------------------------
                                 :           RANCHEROS           |
@@ -45,7 +45,8 @@ This is diagrammed below:
                             /  (80,443)
                           ACME        
                                   
-                                  
+```
+
 # 2. Docker by means of RancherOS 
 [home](#matrix-docker-install)
 ## With DigitalOcean
