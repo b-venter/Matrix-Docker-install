@@ -40,7 +40,7 @@ Note that [delegation](https://github.com/matrix-org/synapse/blob/master/docs/de
 It is just good practice to secure access to the docker socket so as to reduce the possibility that a container can be used to reach the host. However, since Traefik requires access to the docker socket - and it is Internet facing - even more diligence is needed.Therefore, we will:
 1. Using Tecnativa's "Docker Socket proxy"
 2. Set Traefik to connect via Docker Socket proxy
-
+```
 
                   22   (80,443)                (All other ports)
     -------------------|----|-------------------------------|------------------------
@@ -62,6 +62,7 @@ It is just good practice to secure access to the docker socket so as to reduce t
                      ACME     POSTGRES
                      
                      
+```
 
 #### [Tecnativa's "Docker Socket proxy"](https://github.com/Tecnativa/docker-socket-proxy)
 The idea is that the **socket proxy** be connected to via a non-public linked network. So:  
