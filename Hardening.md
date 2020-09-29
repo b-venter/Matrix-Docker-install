@@ -41,6 +41,28 @@ It is just good practice to secure access to the docker socket so as to reduce t
 1. Using Tecnativa's "Docker Socket proxy"
 2. Set Traefik to connect via Docker Socket proxy
 
+
+                  22   (80,443)                (All other ports)
+    -------------------|----|-------------------------------|------------------------
+                            :           RANCHEROS           |
+    ------------------------|-------------------------------|-------------------------
+                            :                              /
+                            |                             /
+                            :                            /
+                 [riot]     |             COTURN----<host>
+                   NGINX    :       (5349, 3478, 63000-63059)
+                        \   |                                
+                         \  :  
+         [matrix]         \ |                                  (2375)
+          SYNAPSE---------<web>------PROXY[traefik]           DOCKERPROXY
+                           / \      (80,443) \                   /
+                          /   \               \                 /
+                         /     \               \---<private>---/
+                        /       \
+                     ACME     POSTGRES
+                     
+                     
+
 #### [Tecnativa's "Docker Socket proxy"](https://github.com/Tecnativa/docker-socket-proxy)
 The idea is that the **socket proxy** be connected to via a non-public linked network. So:  
 `docker network create private`  
