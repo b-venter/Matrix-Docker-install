@@ -48,7 +48,7 @@ This is diagrammed below:
 ```
 
 # 2. Docker by means of RancherOS 
-[home](#matrix-docker-install)
+[home](#contents)  
 ## With DigitalOcean
 Setting up RancherOS is super simple with Digital Ocean:
 1. Create droplet > Container distributions > Select RancherOS
@@ -76,7 +76,7 @@ ssh_authorized_keys:
 Use the command `docker network create web` to create the network called "web". (See diagram above).
  
  # 3. DNS Setup 
- [home](#matrix-docker-install)  
+ [home](#contents)  
  Create A-records (CNAME could also be used) as follows:
 
 IP | URL | Service that will be using it
@@ -88,7 +88,7 @@ IP | URL | Service that will be using it
 
 
 # 4. Controlling the Traefik(v2.2) 
-[home](#matrix-docker-install)
+[home](#contents)  
 ### Setup environment variables
 This is to make your life easier. Traefik requires the domain names to be indicated with backticks. If you use a **yml** file, that is no problem, but if you are passing the arguments directly on the command line shell (*which is how I am doing it here*), then the shell will interpret the backticks and break things. So, rather set them as environment variables e.g.:
 ```
@@ -168,7 +168,7 @@ Let's understand the above code a bit.
 3. Run `docker ps` to see that it is running, and that the ports have been passed to it.
 
 # 5. NGINX for web (incl. Element) 
-[home](#matrix-docker-install)  
+[home](#contents)  
 ### First some prep work
 Why are we adding Nginx before Synapse? It gives an easy to use, little config, method to test our Traefik proxy and more.
 Let's start with creating the files and volumes for Nginx:  
@@ -251,7 +251,7 @@ The `nginx-websecure` labels follow the same rules, but note the following:
  * Reload your page and you should have a valid certificate.
  
 # 6. Postgres db for Matrix 
-[home](#matrix-docker-install)  
+[home](#contents)  
 Matrix requires a database to store conversations, etc. You can use the built in sqlite, but for production you really want PostgreSQL in place.
 
 1. Generate a secure password (e.g with [APG](https://software.opensuse.org/package/apg))
@@ -272,7 +272,7 @@ Matrix requires a database to store conversations, etc. You can use the built in
  So now we have a database ready to connect to. And note that it is not (1) exposed to the host network (`-p`), nor (2) is Traefik proxying anything for it (`traefik.enable=false`).
 
 # 7. Synapse engine 
-[home](#matrix-docker-install)  
+[home](#contents)  
 Now for the heart of our project - [Synapse](https://matrix.org/).
 
 `docker run -d --restart=unless-stopped --network=web --name=synapse -l "traefik.enable=true" -l "traefik.http.routers.synapse.rule=Host($MY_DOMAIN_SYN)" -l "traefik.http.services.synapse.loadbalancer.server.port=8008" -l "traefik.http.middlewares.synapse-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.synapse.middlewares=synapse-redirect-websecure" -l "traefik.http.routers.synapse-websecure.rule=Host($MY_DOMAIN_SYN)" -l "traefik.http.routers.synapse-websecure.tls=true" -l "traefik.http.routers.synapse-websecure.entrypoints=websecure" -l "traefik.http.routers.synapse-websecure.tls=true" -l "traefik.http.routers.synapse-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/synapse:/data  matrixdotorg/synapse`
@@ -340,7 +340,7 @@ You can toggle the *enable_registration* option to control when / if people can 
 
 
 # 8. Overcoming NAT with coTURN 
-[home](#matrix-docker-install)  
+[home](#contents)  
 At this point you should have been able create accounts, login with the app and send messages. And if you are on the same network, calling will also work. But calling to fellow accounts on different networks will be a problem. Enter coTURN...
 
 *client1*<---|--RTP--|-->TURN_SERVER<----|---RTP--|--->*client2*
@@ -417,7 +417,7 @@ Remember to restart synapse: `docker restart synapse` and to force restart your 
 ***NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).*
 
 # 9. Adding a standalone ACME for non-HTTP certificates 
-[home](#matrix-docker-install)  
+[home](#contents)  
 coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
  * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
  * Most ACME agents need to use either port **80** or **443**.
@@ -457,7 +457,7 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  `docker logs coturn` will show whether coTURN has detected and accepted the certificate and key.
 
 # 10. Other references
-[home](#matrix-docker-install)  
+[home](#contents)  
 [Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)  
 [TURN Server example](https://www.informaticar.net/install-turn-server-for-synapse-matrix-on-centos-rhel/)  
 [Matrix guides](https://matrix.org/docs/develop/)  
