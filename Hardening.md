@@ -3,6 +3,7 @@
 
 1. [Synapse](#synapse)
 2. [Docker](#docker)
+3. [RancherOS]()
 
 ## Synapse  
 ### Public Rooms
@@ -104,3 +105,10 @@ You can (1) add ***curl*** to the Traefik container or (2) install a temporary c
 `docker exec -ti alpine curl http://dockerproxy:2375/networks` - This should provide Error 403 Forbidden.  
 `docker stop alpine`  
 `docker rm alpine` - Stop and delete the temporary container.  
+
+## RancherOS  
+### Updates
+The instructions can also be found on the [home site] (https://rancher.com/docs/os/v1.x/en/upgrading/).  
+Check your version with `sudo ros os version` or `sudo ros -v`  
+Compare with available releases: `sudo ros os list`  
+And if necessary, upgrade with `sudo ros os upgrade`  **(A reboot is involved)**  
