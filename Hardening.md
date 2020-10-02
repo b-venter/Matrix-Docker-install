@@ -3,7 +3,7 @@
 
 1. [Synapse](#synapse)
 2. [Docker](#docker)
-3. [RancherOS]()
+3. [RancherOS](#rancheros)
 
 ## Synapse  
 ### Public Rooms
