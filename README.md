@@ -470,3 +470,5 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
 #### WebRTC and coTURN
 https://bugs.chromium.org/p/webrtc/issues/detail?id=11710&q=label%3AEngTriaged  
 https://groups.google.com/g/discuss-webrtc/c/4MmARU0XYqc?pli=1  
+https://github.com/vector-im/riot-android/issues/3299  
+
