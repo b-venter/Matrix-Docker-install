@@ -286,7 +286,7 @@ Next, we need to generate Synapse's  config file:
 Edit the file: `sudo vi /opt/matrix/synapse/homeserver.yaml` to have the following data reflected:
 ```
 server_name: "matrix.example.com"
-
+use_presence: true
 listeners:
   - port: 8008
     tls: false
@@ -307,11 +307,17 @@ database:
     host: postgres
 
 enable_registration: true
+
+max_upload_size: "100M"
+
+
 ```
+* You can choose to enable presence or not by setting to "true" or "false".  
 * Since it's running in a container we need to listen to 0.0.0.0. The port is only exposed on the host and put behind reverse proxy.
 * *psycopg2* is a python postgres connector that needs to be specified as it.
 * User and Password was specified when creating the [PostgreSQL container](https://github.com/b-venter/Matrix-Docker-install/blob/master/README.md#6-postgres-db-for-matrix).
-* The database 'host' parameter refers to the host/container name of the PostgreSQL container.
+* The database 'host' parameter refers to the host/container name of the PostgreSQL container.  
+* Set the maximum allowable size for attachments (photos, video clips, etc)
 
 **Nginx** needs to be updated `sudo vi /opt/matrix/nginx/matrix.conf` by prepending the following:
 ```
