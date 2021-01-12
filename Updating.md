@@ -1,6 +1,6 @@
 # Keeping containers updated
-Always take a snapshot (to allow for rollback)
-[Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)
+* Always take a snapshot (to allow for rollback)  
+* [Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)  
 
 ## Updating Synapse  
 1. `docker stop synapse` (where "synapse" is the name of your matrix server contaner)
