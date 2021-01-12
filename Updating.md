@@ -1,4 +1,6 @@
-#Updating Synapse
+# Keeping containers updated
+
+## Updating Synapse
 1. Take a snapshot (to allow for rollback)
 2. [Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)
 3. `docker stop synapse` (where "synapse" is the name of your matrix server contaner)
