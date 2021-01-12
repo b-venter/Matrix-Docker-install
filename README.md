@@ -206,6 +206,76 @@ Edit the following code in **config.json** to get Element's setup to Synapse pre
  Add the following content:
  ```
  server {
+  listen        80 default_server;
+  server_name   matrix.example.com;
+```
+We also need it to server the Matrix server status page:  
+```
+# Traefik -> nginx -> synapse
+ location /_matrix {
+    proxy_pass http://synapse:8008;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    client_max_body_size 128m;
+  }
+ }
+```
+And then reference the Element web page (for https://element.matrix.example.com)
+```
+server {
+  listen        80;
+  server_name   element.matrix.example.com;
+    root /usr/share/nginx/html/;
+}
+```
+
+### [Adding the well-known URI](https://github.com/matrix-org/synapse/blob/master/INSTALL.md#client-well-known-uri)  
+This will make it easier for client applications to locate your server:  
+`sudo mkdir -p /opt/matrix/nginx/www/.well-known/matrix`
+`sudo vi /opt/matrix/nginx/www/.well-known/matrix/server`
+```
+{
+  "m.server": "synapse.matrix.example.com:443"
+}
+```
+`sudo vi /opt/matrix/nginx/www/.well-known/matrix/client`
+```
+{
+  "m.homeserver": {
+    "base_url": "https://matrix.example.com"
+  }
+}
+```
+The matrix.conf file will need the following added after `location /_matrix {...}` part of the file:
+```
+ location /.well-known/matrix/ {
+    root /var/www/;
+    default_type application/json;
+    add_header Access-Control-Allow-Origin  *;
+  }
+```
+
+Here is a full example of the matrix.conf file:
+```
+server {
+  listen         80 default_server;
+  server_name    matrix.example.com;
+
+ # Traefik -> nginx -> synapse
+ location /_matrix {
+    proxy_pass http://synapse:8008;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    client_max_body_size 128m;
+  }
+
+  location /.well-known/matrix/ {
+    root /var/www/;
+    default_type application/json;
+    add_header Access-Control-Allow-Origin  *;
+  }
+  
+}
+
+server {
   listen        80;
   server_name   element.matrix.example.com;
     root /usr/share/nginx/html/;
@@ -213,7 +283,7 @@ Edit the following code in **config.json** to get Element's setup to Synapse pre
 ```
 
 ### And now for the fun part - adding the docker image!
-`docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json nginx`  
+`docker run -d --restart=unless-stopped --network=web --name=nginx -l "traefik.enable=true" -l "traefik.http.routers.nginx.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx.entrypoints=web" -l "traefik.http.services.nginx.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.nginx-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.nginx.middlewares=nginx-redirect-websecure" -l "traefik.http.routers.nginx-websecure.rule=Host($MY_DOMAIN) || Host($MY_DOMAIN_RIO)" -l "traefik.http.routers.nginx-websecure.entrypoints=websecure" -l "traefik.http.routers.nginx-websecure.tls=true" -l "traefik.http.routers.nginx-websecure.tls.certresolver=letsencrypt" -v /opt/matrix/nginx/matrix.conf:/etc/nginx/conf.d/matrix.conf -v /opt/matrix/nginx/riot/riot-web:/usr/share/nginx/html/ -v /opt/matrix/nginx/riot/config/config.json:/usr/share/nginx/html/config.json -v /opt/matrix/nginx/www:/var/www nginx`  
 That is a long command, so let's break it down a bit:  
   **docker run** options:  
   1. We also connnect it to network "web" created earlier.
