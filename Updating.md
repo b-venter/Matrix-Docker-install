@@ -16,3 +16,9 @@ Always take a snapshot (to allow for rollback)
 4. [Create container](https://github.com/b-venter/Matrix-Docker-install/blob/master/README.md#setup-traefik)
 5. If using **tecnativa**, [add to the second network.](https://github.com/b-venter/Matrix-Docker-install/blob/master/Hardening.md#traefik---docker-socket-via-proxy)
 6. Test by perusing `docker logs proxy`, https://synapse.matrix.example.com, https://element.matrix.example.com, etc.
+
+## Update Element web server
+1. Upload the [latest](https://github.com/vector-im/riot-web/releases) files to your server.
+2. Move it to **/opt/matrix/nginx/riot/versions**.
+3. `sudo ln -f -s /opt/matrix/nginx/riot/versions/element-v1.7.16 /opt/matrix/nginx/riot/riot-web` to update symlink.
+4. Test by loading https://element.matrix.example.com.
