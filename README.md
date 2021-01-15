@@ -22,7 +22,7 @@ Behind Traefik runs the typical Matrix setup:
 - Synapse
 - Nginx serving Synapse and Element pages
 The final piece is only required for voice and video calls: coTURN
-Note that this setup does not include federation to other matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.
+~~Note that this setup does not include federation to other matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.~~
 
 This is diagrammed below:
 ```
