@@ -351,7 +351,7 @@ Most  of the data here is by now easy to understand from the aforementioned fact
 `-l "traefik.http.services.synapse.loadbalancer.server.port=8008"` - we tellTraefik to redirect / reverse proxy from 80 and 443 to Synapse's 8008 port.  
 
 Next, we need to generate Synapse's  config file:  
-`run -v /opt/matrix/synapse:/data --rm  -e SYNAPSE_SERVER_NAME=matrix.example.com -e SYNAPSE_REPORT_STATS=yes matrixdotorg/synapse generate`
+`docker run -v /opt/matrix/synapse:/data --rm  -e SYNAPSE_SERVER_NAME=matrix.example.com -e SYNAPSE_REPORT_STATS=yes matrixdotorg/synapse generate`
 
 Edit the file: `sudo vi /opt/matrix/synapse/homeserver.yaml` to have the following data reflected:
 ```
