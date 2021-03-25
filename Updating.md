@@ -7,7 +7,8 @@
 2. `docker rm synapse` (delete container)
 3. `docker pull matrixdotorg/synapse` (pull latest container image)
 4. [Create new container] (https://github.com/b-venter/Matrix-Docker-install/blob/master/README.md#7-synapse-engine)
-5. Test by loading https://synapse.matrix.example.com/
+5. Test by loading https://synapse.matrix.example.com/  
+6. Can also test https://matrix.example.com/_matrix/federation/v1/version
 
 ## Updating Traefik
 1. `docker stop proxy`
