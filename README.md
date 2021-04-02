@@ -56,6 +56,7 @@ Setting up RancherOS is super simple with Digital Ocean:
 3. Select datacenter location
 4. NB!! Add SSH keys (you can only login to RancherOS with SSH trusted keys)
 5. Finish creating your droplet. SSH to it by `ssh rancher@ip.ad.re.ss`
+6. **NB:** See [Hardening](Hardening.md#rancheros) regarding migrating RancherOS to BurmillaOS
 
 ## Bare metal / VirtualBox, etc
 An easy guide is found on the Rancher website [here](https://rancher.com/docs/os/v1.x/en/quick-start-guide/) and [here](https://rancher.com/docs/os/v1.x/en/installation/server/install-to-disk/). But it consists of the following:
