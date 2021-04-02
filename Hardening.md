@@ -94,7 +94,7 @@ Finally, we need to adjust the parameters of the **proxy** container:
 
 Note that:
 * The Docker socket is no longer mounted as a *volume*.
-* The **proxy** container is conencted to ***two*** networks.
+* The **proxy** container is connected to ***two*** networks.
 
 #### Testing
 You can (1) add ***curl*** to the Traefik container or (2) install a temporary container. Below uses option 2:  
@@ -107,8 +107,10 @@ You can (1) add ***curl*** to the Traefik container or (2) install a temporary c
 `docker rm alpine` - Stop and delete the temporary container.  
 
 ## RancherOS  
-### Updates
-The instructions can also be found on the [home site] (https://rancher.com/docs/os/v1.x/en/upgrading/).  
-Check your version with `sudo ros os version` or `sudo ros -v`  
-Compare with available releases: `sudo ros os list`  
-And if necessary, upgrade with `sudo ros os upgrade`  **(A reboot is involved)**  
+### Moving to BurmillaOS
+Since RancherOS is no longer beng maintained, it is a huge security risk to continue running it - even though it is such a convenient and nifty OS. Fortunately the chaps have created [BurmillaOS](https://burmillaos.org/), which is provides a community version of good ol' RancherOS. Especially great is the [in situ upgrade](https://burmillaos.org/docs/installation/upgrading/):  
+1. `sudo ros config set rancher.upgrade.url https://raw.githubusercontent.com/burmilla/releases/v1.9.x/releases.yml`
+2. `sudo ros os upgrade`
+3. `sudo ros console switch default`
+
+The only "hiccup" was an error when running docker commands (e.g. docker ps). In my case, it simply required a second reboot.
