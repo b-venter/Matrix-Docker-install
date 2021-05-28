@@ -23,3 +23,6 @@
 2. Move it to **/opt/matrix/nginx/riot/versions**.
 3. `sudo ln -f -s /opt/matrix/nginx/riot/versions/element-v1.7.16 /opt/matrix/nginx/riot/riot-web` to update symlink.
 4. Test by loading https://element.matrix.example.com.
+
+## Update ACME
+1. docker exec -ti acme apk -U upgrade
