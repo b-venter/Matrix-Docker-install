@@ -8,8 +8,8 @@ coturndom='turn.matrix.example.com'
 
 echo 'Checking if newer cert exists...'
 
-active=$(echo "Q" | openssl s_client -connect turn.matrix.workshop86.com:5349 2>/dev/null | openssl x509 -noout -enddate)
-filecert=$(cat /opt/turn.matrix.workshop86.com/fullchain.cer | openssl x509 -noout -enddate)
+active=$(echo "Q" | openssl s_client -connect $coturndom:5349 2>/dev/null | openssl x509 -noout -enddate)
+filecert=$(cat /opt/$coturndom/fullchain.cer | openssl x509 -noout -enddate)
 
 #find 'path to possibly new' -newer 'path to existing'
 if [ $active==$filecert ];
