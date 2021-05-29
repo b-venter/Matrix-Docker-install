@@ -529,7 +529,7 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  1. `docker exec -ti acme mkdir -p /opt/turn.matrix.example.com`
  2. `docker exec -ti acme sh`
  3. `cp /root/.acme.sh/turn.matrix.example.com/fullchain.cer /opt/turn.matrix.example.com/`
- 4. `cp /root/.acme.sh/turn.matrix.example.com/turn.matrix.example.com.key  /opt/turn.matrix.example.com/`
+ 4. `cp /root/.acme.sh/turn.matrix.example.com/turn.matrix.example.com.key  /opt/turn.matrix.example.com/`  
  *You will need to restart your "coturn" container to detect the new certificates.*  
  `docker logs coturn` will show whether coTURN has detected and accepted the certificate and key.
 
