@@ -45,23 +45,23 @@ It is just good practice to secure access to the docker socket so as to reduce t
 
                   22   (80,443)                (All other ports)
     -------------------|----|-------------------------------|------------------------
-                            :           RANCHEROS           |
-    ------------------------|-------------------------------|-------------------------
-                            :                              /
-                            |                             /
-                            :                            /
-                 [riot]     |             COTURN----<host>
-                   NGINX    :       (5349, 3478, 63000-63059)
-                        \   |                                
-                         \  :  
-         [matrix]         \ |                                  (2375)
+                            :           RANCHEROS           |      [docker.sock]
+    ------------------------|-------------------------------|----------|--------------
+                            :                              /           |
+                            |                             /            |
+                            :                            /             |
+                 [riot]     |             COTURN----<host>             |
+                   NGINX    :       (5349, 3478, 63000-63059)          |
+                        \   |                                          |
+                         \  :                                          |
+         [matrix]         \ |                                  (2375)  |
           SYNAPSE---------<web>------PROXY[traefik]           DOCKERPROXY
-                           / \      (80,443) \                   /
-                          /   \               \                 /
-                         /     \               \---<private>---/
-                        /       \
-                     ACME     POSTGRES
-                     
+                           /         (80,443) \                   /
+                          /                    \                 /
+                         /                      \---<private>---/
+                        /                       /
+                   POSTGRES                    /
+                                            ACME(443)-optional
                      
 ```
 
@@ -105,6 +105,67 @@ You can (1) add ***curl*** to the Traefik container or (2) install a temporary c
 `docker exec -ti alpine curl http://dockerproxy:2375/networks` - This should provide Error 403 Forbidden.  
 `docker stop alpine`  
 `docker rm alpine` - Stop and delete the temporary container.  
+
+### Enabling DTLS on coTURN
+#### Enabling TLS
+1. See [Standalone ACME](#adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates first.
+2. Remove the hashes in `sudo vi /opt/matrix/synapse/homeserver.yaml` for TLS
+```
+# For Let's Encrypt certificates, use `fullchain.pem` here.
+cert=/opt/turn.matrix.example.com/fullchain.cer
+# TLS private key file
+pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
+```
+3. You can force only TLS communication in the same file by changing the TURN URI to only use Secure TURN (default port of TURNS is 5349):
+```
+turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
+```
+Remember to restart synapse: `docker restart synapse` and to force restart your Element app, so that the config can be read.  
+***NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).*
+
+#### Adding a standalone ACME for non-HTTP certificates 
+coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
+ * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
+ * Most ACME agents need to use either port **80** or **443**.
+
+The solution is:
+1. To have a container whose port 443 is passed directly to it from Traefik using coTURN's URL (*turn.matrix.example.com*).
+2. To share the certificates with coTURN container via a shared volume since they do not share a network.  
+
+To accomplish this, we use a standard **Alpine** image, and install **acme.sh** on it:  
+`docker run -d --restart=unless-stopped --network=private --name=acme -it --expose 443 -l "traefik.enable=true" -l "traefik.tcp.routers.myacme.entrypoints=websecure" -l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)" -l "traefik.tcp.routers.myacme.service=myacme" -l "traefik.tcp.routers.myacme.tls=true" -l "traefik.tcp.routers.myacme.tls.passthrough=true" -l "traefik.tcp.services.myacme.loadbalancer.server.port=443" -v /opt/certs:/opt alpine`  
+
+So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:  
+ - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme".  
+ Note that this is a *tcp* router, not http or https.  
+ - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate the SSL connection by it, but rather pass it through to "acme"  
+ - `--expose 443` - tells docker to expose on the LAN port 443 (normally done automatically as services run, but no service is running on 443)
+ - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
+ - `--network=private` - we have placed this in the isolated network "private" with dockerproxy, because it needs to request a restart of the coTURN container when a new certificate is installed.
+ 
+ #### To install acme.sh
+ 1. Setup Alpine package manager: `docker exec -ti acme apk update`
+ 2. Install acme.sh: `docker exec -ti acme apk add --upgrade acme.sh`
+ 3. Your dockerproxy needs to bee edited to allow acme to request the restart of a container:  
+ ```bash
+docker stop dockerproxy
+docker rm dockerproxy
+docker run -d --restart=unless-stopped --privileged --name dockerproxy --network=private -v /var/run/docker.sock:/var/run/docker.sock --expose 2375 --env CONTAINERS=1 --env POST=1 --env ALLOW_RESTART=1 tecnativa/docker-socket-proxy
+ ```
+ 
+ 
+ Before going further, now is a good time to test that port 443, since **openssl** has been installed with the above command.  
+ Server side: `docker exec -ti acme openssl s_server -accept 443 -nocert -cipher aNULL`  
+ Now on you own machine / client PC: `openssl s_client -connect turn.matrix.example.com:443 -cipher aNULL`  
+ Once you have tested that requests are passing direct to your "acme" container, finish requesting the certificates.
+ 
+ 
+ #### Make the certificates available to "coturn"
+ 1. See the shell script "certs_acme.sh". This script is meant to automate getting the certificates on the acme container, copying the certificates to where the coTURN container looks for its certificates (the shared volume /opt/certs) and restarting the coTURN container so that the new certificates are used.
+ 2. Edit the file and place it in /opt/certs (from rancherOS perspective. /opt from acme container perspective).
+ 3. Test it by running it: `docker exec -ti acme ./opt/certs_acme.sh`
+ 4. If the above was successful, then certificates have been requested, installed and coTURN has been restarted.
+ 5. Add the script to the acme container's crontab.
 
 ## RancherOS  
 ### Moving to BurmillaOS
