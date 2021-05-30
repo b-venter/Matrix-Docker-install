@@ -110,14 +110,14 @@ You can (1) add ***curl*** to the Traefik container or (2) install a temporary c
 ## Enabling DTLS on coTURN
 ### Enabling TLS
 1. See [Standalone ACME](#adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates first.
-2. Remove the hashes in `sudo vi /opt/matrix/synapse/homeserver.yaml` for TLS
+2. Remove the hashes in `sudo vi /opt/coturn/turnserver.conf` for TLS
 ```
 # For Let's Encrypt certificates, use `fullchain.pem` here.
 cert=/opt/turn.matrix.example.com/fullchain.cer
 # TLS private key file
 pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
 ```
-3. You can force only TLS communication in the same file by changing the TURN URI to only use Secure TURN (default port of TURNS is 5349):
+3. You can force only TLS communication in the `/opt/matrix/synapse/homeserver.yaml` file by changing the TURN URI to only use Secure TURN (default port of TURNS is 5349):
 ```
 turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
 ```
