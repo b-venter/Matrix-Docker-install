@@ -19,7 +19,8 @@ if [ "$(find /root/.acme.sh/$coturndom/fullchain.cer -newer /opt/$coturndom/)" ]
 then                                                                             
         echo "Newer found...copying across to /opt/$coturndom"        
         cp "/root/.acme.sh/$coturndom/fullchain.cer" "/opt/$coturndom/"
-        echo "Restarting TURN server..."                                                                 
+        echo "Restarting TURN server..."
+        #Where "coturn" is the name of the container which is a TURN server
         curl -X POST http://dockerproxy:2375/containers/coturn/restart                                   
         echo "Done."
 else                                                                  
