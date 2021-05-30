@@ -39,11 +39,10 @@ This is diagrammed below:
                              \  :  
              [matrix]         \ |                   
               SYNAPSE---------<web>------POSTGRES       
-                               / \                  
-                              /   \                 
-                             /   PROXY[trafik]
-                            /  (80,443)
-                          ACME        
+                                 \                  
+                                  \                 
+                                 PROXY[traefik]
+                               (80,443)        
                                   
 ```
 
@@ -475,63 +474,9 @@ turn_user_lifetime: 86400000
 turn_allow_guests: true
 ```
 And restart synapse container to update the config: `docker restart synapse`  
-*You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*
-
-#### Enabling TLS
-1. See [Standalone ACME](#9-adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates.
-2. Remove the hashes in `sudo vi /opt/matrix/synapse/homeserver.yaml` for TLS
-```
-# For Let's Encrypt certificates, use `fullchain.pem` here.
-cert=/opt/turn.matrix.example.com/fullchain.cer
-# TLS private key file
-pkey=opt/turn.matrix.example.com/turn.matrix.example.com.key
-```
-3. You can force only TLS communication in the same file by changing the TURN URI to only use Secure TURN (default port of TURNS is 5349):
-```
-turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
-```
-Remember to restart synapse: `docker restart synapse` and to force restart your Element app.  
-***NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).*
-
-# 9. Adding a standalone ACME for non-HTTP certificates 
-[home](#contents)  
-coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
- * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
- * Most ACME agents need to use either port **80** or **443**.
-
-The solution is:
-1. To have a container whose port 443 is passed directly to it from Traefik using coTURN's URL (*turn.matrix.example.com*).
-2. To share the certificates with coTURN container via a shared volume since they do not share network "web".
-
-To accomplish this, we use a standard **Alpine** image, and install **acme.sh** on it:  
-`docker run -d --restart=unless-stopped --network=web --name=acme -it --expose 443 -l "traefik.enable=true" -l "traefik.tcp.routers.myacme.entrypoints=websecure" -l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)" -l "traefik.tcp.routers.myacme.service=myacme" -l "traefik.tcp.routers.myacme.tls=true" -l "traefik.tcp.routers.myacme.tls.passthrough=true" -l "traefik.tcp.services.myacme.loadbalancer.server.port=443" -v /opt/certs:/opt alpine`  
-
-So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:  
- - `-l "traefik.tcp.routers.myacme.rule=HostSNI($MY_DOMAIN_COT)"` - ensures that all *turn.matrix.example.com:443* requests go to container "acme".  
- Note that this is a *tcp* router, not http or https.  
- - `-l "traefik.tcp.routers.myacme.tls.passthrough=true"` - tells Traefik to ***NOT*** terminate the SSL connection by it, but rather pass it through to "acme"  
- - `--expose 443` - tells docker to expose on the LAN port 443 (normally done automatically as services run, but no service is running on 443)
- - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
- 
- #### To install acme.sh
- 1. Setup Alpine package manager: `docker exec -ti acme apk update`
- 2. Install acme.sh: `docker exec -ti acme apk add --upgrade acme.sh`
- 
- 
- Before going further, now is a good time to test that port 443, since **openssl** has been installed with the above command.  
- Server side: `docker exec -ti acme openssl s_server -accept 443 -nocert -cipher aNULL`  
- Now on you own machine / client PC: `openssl s_client -connect turn.matrix.example.com:443 -cipher aNULL`  
- Once you have tested that requests are passing direct to your "acme" container, finish requesting the certificates.
- 
- 3. `docker exec -ti acme acme.sh --issue --alpn -d turn.matrix.example.com`
- 
- #### Make the certificates available to "coturn"
- 1. `docker exec -ti acme mkdir -p /opt/turn.matrix.example.com`
- 2. `docker exec -ti acme sh`
- 3. `cp /root/.acme.sh/turn.matrix.example.com/fullchain.cer /opt/turn.matrix.example.com/`
- 4. `cp /root/.acme.sh/turn.matrix.example.com/turn.matrix.example.com.key  /opt/turn.matrix.example.com/`  
- *You will need to restart your "coturn" container to detect the new certificates.*  
- `docker logs coturn` will show whether coTURN has detected and accepted the certificate and key.
+*You will also need to force close and re-open your Element client (web/Android/iOS) to read the updated config*  
+  
+See also [Hardening](Hardening.md) regarding certificates for DTLS on coTURN.
 
 # 10. Other references
 [home](#contents)  
