@@ -3,7 +3,8 @@
 
 1. [Synapse](#synapse)
 2. [Docker](#docker)
-3. [RancherOS](#rancheros)
+3. [coTURN](#enabling-dtls-on-coturn)
+4. [RancherOS](#rancheros)
 
 ## Synapse  
 ### Public Rooms
@@ -106,8 +107,8 @@ You can (1) add ***curl*** to the Traefik container or (2) install a temporary c
 `docker stop alpine`  
 `docker rm alpine` - Stop and delete the temporary container.  
 
-### Enabling DTLS on coTURN
-#### Enabling TLS
+## Enabling DTLS on coTURN
+### Enabling TLS
 1. See [Standalone ACME](#adding-a-standalone-acme-for-non-http-certificates) regarding getting certificates first.
 2. Remove the hashes in `sudo vi /opt/matrix/synapse/homeserver.yaml` for TLS
 ```
@@ -123,7 +124,7 @@ turn_uris: [ "turns:turn.matrix.example.com?transport=tcp" ]
 Remember to restart synapse: `docker restart synapse` and to force restart your Element app, so that the config can be read.  
 ***NOTE:** WebRTC and COTURN have issues on Android and iOS with TLS on TURN when using Let's Encrypt. The media of WebRTC is encrypted regardless, but some signalling is present on standard TCP/UDP. While this bug exists, calls via TURNS might not work. See [Open issues](#webrtc-and-coturn).*
 
-#### Adding a standalone ACME for non-HTTP certificates 
+### Adding a standalone ACME for non-HTTP certificates 
 coTURN offers TLS and DTLS to further protect the already encrypted WebRTC. However this requires a certificate, for which we have the following limitations: 
  * We can't use port 80 and 443 because Traefik controls those, but does not control TLS for coTURN
  * Most ACME agents need to use either port **80** or **443**.
@@ -143,7 +144,7 @@ So this container is monitored by Traefik (`-l "traefik.enable=true"`), but:
  - `-v /opt/certs` - we are sharing this folder with "acme" and "coturn"
  - `--network=private` - we have placed this in the isolated network "private" with dockerproxy, because it needs to request a restart of the coTURN container when a new certificate is installed.
  
- #### To install acme.sh
+ ### To install acme.sh
  1. Setup Alpine package manager: `docker exec -ti acme apk update`
  2. Install acme.sh: `docker exec -ti acme apk add --upgrade acme.sh`
  3. Your dockerproxy needs to bee edited to allow acme to request the restart of a container:  
@@ -160,7 +161,7 @@ docker run -d --restart=unless-stopped --privileged --name dockerproxy --network
  Once you have tested that requests are passing direct to your "acme" container, finish requesting the certificates.
  
  
- #### Make the certificates available to "coturn"
+ ### Make the certificates available to "coturn"
  1. See the shell script "certs_acme.sh". This script is meant to automate getting the certificates on the acme container, copying the certificates to where the coTURN container looks for its certificates (the shared volume /opt/certs) and restarting the coTURN container so that the new certificates are used.
  2. Edit the file and place it in /opt/certs (from rancherOS perspective. /opt from acme container perspective).
  3. Test it by running it: `docker exec -ti acme ./opt/certs_acme.sh`
