@@ -6,7 +6,7 @@
 # 2B. Or in rancher at /opt/certs/
 # 3. Schedule this with crontab to run once a week
 #   crontab -e
-#   0 0 * * 0   /opt/certs_acme.sh
+#   0 0 * * 0   ./opt/certs_acme.sh
 
 coturndom='turn.matrix.example.com'
 
