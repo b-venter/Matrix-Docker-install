@@ -162,7 +162,7 @@ docker run -d --restart=unless-stopped --privileged --name dockerproxy --network
  
  
  ### Make the certificates available to "coturn"
- 1. See the shell script "certs_acme.sh". This script is meant to automate getting the certificates on the acme container, copying the certificates to where the coTURN container looks for its certificates (the shared volume /opt/certs) and restarting the coTURN container so that the new certificates are used.
+ 1. See the shell script ["certs_acme.sh"](../certs_acme.sh). This script is meant to automate getting the certificates on the acme container, copying the certificates to where the coTURN container looks for its certificates (the shared volume /opt/certs) and restarting the coTURN container so that the new certificates are used.
  2. Edit the file and place it in /opt/certs (from rancherOS perspective. /opt from acme container perspective).
  3. Test it by running it: `docker exec -ti acme ./opt/certs_acme.sh`
  4. If the above was successful, then certificates have been requested, installed and coTURN has been restarted.
