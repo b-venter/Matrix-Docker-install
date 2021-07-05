@@ -12,8 +12,8 @@ Much of what I post here was gained with information from Jon Neverland's posts 
 6. [Postgres db for Matrix](#6-postgres-db-for-matrix)  
 7. [Synapse engine](#7-synapse-engine)  
 8. [Overcoming NAT with coTURN](#8-overcoming-nat-with-coturn)  
-9. [Adding a standalone ACME for non-HTTP certificates](#9-adding-a-standalone-acme-for-non-http-certificates)  
-10. [Other references](#10-other-references)  
+9. [Other references](#9-other-references)  
+10. [Open Issues](#10-open-issues)
 
 # 1. Introduction and overview
 Using RancherOS gives us a lightweight docker-ready base to work from. Traefik adds easy reverse-proxy and ACME certificate management (once you have conquered Traefik logic). I also added a standalone ACME - since coTURN is not behind Traefik, has no web service but needs a certificate for TLS.
@@ -21,8 +21,7 @@ Behind Traefik runs the typical Matrix setup:
 - PostgreSQL
 - Synapse
 - Nginx serving Synapse and Element pages
-The final piece is only required for voice and video calls: coTURN
-~~Note that this setup does not include federation to other matrix servers, but once you have mastered this part, adding federation shouldn't be too hard.~~
+The final piece is required for voice and video calls: coTURN
 
 This is diagrammed below:
 ```
@@ -478,7 +477,7 @@ And restart synapse container to update the config: `docker restart synapse`
   
 See also [Hardening](Hardening.md) regarding certificates for DTLS on coTURN.
 
-# 10. Other references
+# 9. Other references
 [home](#contents)  
 [Postgre and Synapse](https://github.com/matrix-org/synapse/blob/master/docs/postgres.md)  
 [TURN Server example](https://www.informaticar.net/install-turn-server-for-synapse-matrix-on-centos-rhel/)  
@@ -488,7 +487,7 @@ See also [Hardening](Hardening.md) regarding certificates for DTLS on coTURN.
 [Traefik v1 to v2](https://docs.traefik.io/migration/v1-to-v2/)  
 [Synapse on Docker](https://github.com/matrix-org/synapse/blob/master/docs/turn-howto.md)  
 
-# 11. Open issues
+# 10. Open issues
 #### WebRTC and coTURN
 https://bugs.chromium.org/p/webrtc/issues/detail?id=11710&q=label%3AEngTriaged  
 https://groups.google.com/g/discuss-webrtc/c/4MmARU0XYqc?pli=1  
