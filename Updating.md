@@ -2,6 +2,11 @@
 * Always take a snapshot (to allow for rollback)  
 * [Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)  
 
+## RancherOS / BurmillaOS
+1. `sudo ros os list`
+2. `sudo ros os upgrade`
+3. Restart when prompted
+
 ## Updating Synapse  
 1. `docker stop synapse` (where "synapse" is the name of your matrix server contaner)
 2. `docker rm synapse` (delete container)
