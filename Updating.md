@@ -2,6 +2,8 @@
 * Always take a snapshot (to allow for rollback)  
 * [Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)  
 
+##Remove old images
+
 ## RancherOS / BurmillaOS
 1. `sudo ros os list`
 2. `sudo ros os upgrade`
@@ -65,3 +67,7 @@
    - `docker exec -i postgres /bin/bash -c "PGPASSWORD=pg_password pg_dump --username synapse matrix" | docker exec -i postgres14 /bin/bash -c "PGPASSWORD=pg_password psql --username synapse matrix"`
 7. Now we edit Synapse's config file: `sudo vi /opt/matrix/synapse/homeserver.yaml`, go to the **database** entries and update the ***host*** to the new pg container (e.g. postgres14). Note: update password if changed.
 8. `docker start synapse`
+
+If all has gone well, you can stop the old DB and remove: 
+ - `docker stop postgres`
+ - `docker rm postgres`
