@@ -27,9 +27,9 @@
 ### Website update
 1. `cd /opt/matrix/nginx/riot/versions`
 2. Get the latest Element web: sudo wget https://github.com/vector-im/element-web/releases/download/v1.9.7/element-v1.9.7.tar.gz
-3. Extract: sudo tar -xvzf element-v1.9.7.tar.gz and then remove sudo rm element-v1.9.7.tar.gz
+3. Extract: `sudo tar -xvzf element-v1.9.7.tar.gz and then remove sudo rm element-v1.9.7.tar.gz`
 4. Remove the old symlink: `sudo rm /opt/matrix/nginx/riot/riot-web`
-5. Add new symlink: sudo ln -s /opt/matrix/nginx/riot/versions/element-v1.9.7 /opt/matrix/nginx/riot/riot-web (This will allow you change versions merely by updating the symlink.)
+5. Add new symlink: `sudo ln -s /opt/matrix/nginx/riot/versions/element-v1.9.7 /opt/matrix/nginx/riot/riot-web` (This will allow you change versions merely by updating the symlink.)
 6. `docker restart nginx`
 7. Test by loading https://element.matrix.example.com.
 
