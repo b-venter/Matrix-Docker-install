@@ -24,10 +24,15 @@
 6. Test by perusing `docker logs proxy`, https://synapse.matrix.example.com, https://element.matrix.example.com, etc.
 
 ## Update Element web server
-1. Upload the [latest](https://github.com/vector-im/riot-web/releases) files to your server.
-2. Move it to **/opt/matrix/nginx/riot/versions**.
-3. `sudo ln -f -s /opt/matrix/nginx/riot/versions/element-v1.7.16 /opt/matrix/nginx/riot/riot-web` to update symlink.
-4. Test by loading https://element.matrix.example.com.
+### Website update
+1. `cd /opt/matrix/nginx/riot/versions`
+2. Get the latest Element web: sudo wget https://github.com/vector-im/element-web/releases/download/v1.9.7/element-v1.9.7.tar.gz
+3. Extract: sudo tar -xvzf element-v1.9.7.tar.gz and then remove sudo rm element-v1.9.7.tar.gz
+4. sudo ln -s /opt/matrix/nginx/riot/versions/element-v1.9.7 /opt/matrix/nginx/riot/riot-web (This will allow you change versions merely by updating the symlink.)
+5. `docker restart nginx`
+6. Test by loading https://element.matrix.example.com.
+
+### NGINX Container update
 
 ## Update ACME
 1. docker exec -ti acme apk -U upgrade
