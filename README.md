@@ -176,13 +176,21 @@ sudo mkdir -p /opt/matrix/nginx/riot
 sudo mkdir /opt/matrix/nginx/riot/config
 sudo mkdir /opt/matrix/nginx/riot/versions
 ```
-Then download the latest [Element (Riot)](https://github.com/vector-im/riot-web/releases) code. I found that un-tar'ing the code was a mission on RancherOS. So instead:
-1. Download it to my local machine, un-tar it and then zip it.  
-2. Copy the zip to the container (e.g. scp) and move it to **/opt/matrix/nginx/riot/versions**.  
-3. `unzip` the compressed files.  
 
-`sudo ln -s /opt/matrix/nginx/riot/versions/riot-v1.7.5-rc.1 /opt/matrix/nginx/riot/riot-web`  
-This will allow you change versions merely by updating the symlink.  
+1. `cd /opt/matrix/nginx/riot/versions`
+2. Get the latest [Element web](https://github.com/vector-im/element-web/releases): `sudo wget https://github.com/vector-im/element-web/releases/download/v1.9.7/element-v1.9.7.tar.gz`
+3. Extract: `sudo tar -xvzf element-v1.9.7.tar.gz` and then remove `sudo rm element-v1.9.7.tar.gz`
+4. `sudo ln -s /opt/matrix/nginx/riot/versions/element-v1.9.7 /opt/matrix/nginx/riot/riot-web` (This will allow you change versions merely by updating the symlink.)  
+
+> **START OF HSTORICAL FOR THOSE ON RANCHEROS AND NOT BURMILLAOS**  
+> Then download the latest [Element (Riot)](https://github.com/vector-im/riot-web/releases) code. I found that un-tar'ing the code was a mission on RancherOS. So instead:
+> 1. Download it to my local machine, un-tar it and then zip it.  
+> 2. Copy the zip to the container (e.g. scp) and move it to **/opt/matrix/nginx/riot/versions**.  
+> 3. `unzip` the compressed files.  
+> 4. Do symlink update as above
+> **END OF HSTORICAL FOR THOSE ON RANCHEROS AND NOT BURMILLAOS**  
+
+
 ```
 sudo cp /opt/matrix/nginx/riot/riot-web/config.sample.json /opt/matrix/nginx/riot/config/config.json
 sudo vi /opt/matrix/nginx/riot/config/config.json
