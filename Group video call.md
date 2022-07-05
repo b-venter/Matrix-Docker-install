@@ -6,7 +6,7 @@ The challenge is setting up Element Call for yourself. The instructions are basi
 ## The plan
 Currently my setup has gone from the [original](https://github.com/b-venter/Matrix-Docker-install/tree/master#1-introduction-and-overview) to the [hardened setup](https://github.com/b-venter/Matrix-Docker-install/blob/master/Hardening.md#docker-socket-access).  
 
-The container build on the Element Call page houses everything in one container: the application and the web server (NGINX). All communication witht he Synapse server takes place through API calls. With that in mind, it will be ideal to (1) have Traefik still terminate TLS connections, and (2) from there route the traffic to our Element Call container:
+The container build on the Element Call page houses everything in one container: the application and the web server (NGINX). All communication with the Synapse server takes place through API calls. With that in mind, it will be ideal to (1) have Traefik still terminate TLS connections, and (2) from there route the traffic to our Element Call container:
 
 
                   22   (80,443)                (All other ports)
