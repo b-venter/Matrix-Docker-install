@@ -1,7 +1,7 @@
 # Intro
 Element recently released **[Element Call](https://element.io/blog/introducing-native-matrix-voip-with-element-call/)**, a web app that allows uses the matrix protocol to setup a group video call. Currently this is not supported by the Element apps (web or mobile) natively, but it certainly seems to be getting closer. What makes it really smart is the fact that even screensharing is supported - and the app is only in beta.  
 
-The challenge is setting up Element Call for yourself. The instructions are basic and tend towards those with monolithic installs. But the source code (https://github.com/vector-im/element-call) shows a Dockerfile...which if you have followed the other notes in this repo, is exactly what we are looking for!
+The challenge is setting up Element Call on your own homeserver. The instructions tend towards those with monolithic installs. But the source code (https://github.com/vector-im/element-call) shows a Dockerfile...which if you have followed the other notes in this repo, is exactly what we are looking for!
 
 ## The plan
 Currently my setup has gone from the [original](https://github.com/b-venter/Matrix-Docker-install/tree/master#1-introduction-and-overview) to the [hardened setup](https://github.com/b-venter/Matrix-Docker-install/blob/master/Hardening.md#docker-socket-access).  
@@ -65,4 +65,5 @@ export MY_DOMAIN_CALL=\`call.matrix.example.com\`
 ```
 Now we can run the container:
 `docker run -d --restart=unless-stopped --network=web --name=element_call --expose 8080 -l "traefik.enable=true"  -l "traefik.http.routers.call.rule=Host($MY_DOMAIN_CALL)"  -l "traefik.http.routers.call.entrypoints=web" -l "traefik.http.services.call.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.call-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.call.middlewares=call-redirect-websecure" -l "traefik.http.routers.call-websecure.rule=Host($MY_DOMAIN_CALL)" -l "traefik.http.routers.call-websecure.entrypoints=websecure" -l "traefik.http.routers.call-websecure.tls=true" -l "traefik.http.routers.call-websecure.tls.certresolver=letsencrypt" element_call`  
-Verify that Traefik has the certificate loaded: `sudo cat /opt/traefik/acme.json | grep call`. If that shows fine and `docker ps` indicates the container is running, browse to the FQDN. Login with your Matrix username and password and start a Video call!!
+
+Verify that Traefik has the certificate loaded: `sudo cat /opt/traefik/acme.json | grep call` (where *call* is part of the FQDN call.matrix.example.com). If that shows fine and `docker ps` indicates the container is running, browse to the FQDN. Login with your Matrix username and password and start a Video call!!
