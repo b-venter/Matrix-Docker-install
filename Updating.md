@@ -33,6 +33,8 @@
 6. `docker restart nginx`
 7. Test by loading https://element.matrix.example.com.
 
+Not sure if it was just cache, but one may need to rename the previous. E.g. sudo mv element-v1.2.3.4/ element-v1.2.3.4_old/. The stop and start nginx container.
+
 ### NGINX Container update
 
 ## Update ACME
