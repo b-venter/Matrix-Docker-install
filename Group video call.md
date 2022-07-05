@@ -61,10 +61,8 @@ IP | URL | Service that will be using it
 
 When that exists and is reachable - even just a 404 is fine - set the FQDN as a envirnment variable: 
 ```bash
-export MY_DOMAIN_CALL=\`call.matrix.example.com\`. 
+export MY_DOMAIN_CALL=\`call.matrix.example.com\` 
 ```
 Now we can run the container:
-```bash
-docker run -d --restart=unless-stopped --network=web --name=element_call --expose 8080 -l "traefik.enable=true"  -l "traefik.http.routers.call.rule=Host($MY_DOMAIN_CALL)"  -l "traefik.http.routers.call.entrypoints=web" -l "traefik.http.services.call.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.call-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.call.middlewares=call-redirect-websecure" -l "traefik.http.routers.call-websecure.rule=Host($MY_DOMAIN_CALL)" -l "traefik.http.routers.call-websecure.entrypoints=websecure" -l "traefik.http.routers.call-websecure.tls=true" -l "traefik.http.routers.call-websecure.tls.certresolver=letsencrypt" element_call
-```
+`docker run -d --restart=unless-stopped --network=web --name=element_call --expose 8080 -l "traefik.enable=true"  -l "traefik.http.routers.call.rule=Host($MY_DOMAIN_CALL)"  -l "traefik.http.routers.call.entrypoints=web" -l "traefik.http.services.call.loadbalancer.passhostheader=true" -l "traefik.http.middlewares.call-redirect-websecure.redirectscheme.scheme=https" -l "traefik.http.routers.call.middlewares=call-redirect-websecure" -l "traefik.http.routers.call-websecure.rule=Host($MY_DOMAIN_CALL)" -l "traefik.http.routers.call-websecure.entrypoints=websecure" -l "traefik.http.routers.call-websecure.tls=true" -l "traefik.http.routers.call-websecure.tls.certresolver=letsencrypt" element_call`  
 Verify that Traefik has the certificate loaded: `sudo cat /opt/traefik/acme.json | grep call`. If that shows fine and `docker ps` indicates the container is running, browse to the FQDN. Login with your Matrix username and password and start a Video call!!
