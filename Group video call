@@ -1,0 +1,7 @@
+# Intro
+Element recently released **[Element Call](https://element.io/blog/introducing-native-matrix-voip-with-element-call/)**, a web app that allows uses the matrix protocol to setup a group video call. Currently this is not supported by the Element apps (web or mobile) natively, but it certainly seems to be getting closer. What makes it really smart is the fact that even screensharing is supported - and the app is only in beta.  
+
+The challenge is setting up Element Call for yourself. The instructions are basic and tends towards those with monolithic installs. But the source code (https://github.com/vector-im/element-call) shows a Dockerfile...which if you have followed the other notes in the repo, is exactly what we are looking for!
+
+## The plan
+Looking 
