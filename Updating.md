@@ -2,8 +2,6 @@
 * Always take a snapshot (to allow for rollback)  
 * [Setup environment variables](https://github.com/b-venter/Matrix-Docker-install#setup-environment-variables)  
 
-##Remove old images
-
 ## RancherOS / BurmillaOS
 1. `sudo ros os list`
 2. `sudo ros os upgrade`
@@ -70,4 +68,7 @@
 
 If all has gone well, you can stop the old DB and remove: 
  - `docker stop postgres`
- - `docker rm postgres`
+ - `docker rm postgres`  
+
+## Removing old images
+Run `docker image ls --all`. From the output, identify images no longer being used. It is easier if your habit has been to pull specific releases and not just "latest". To delete, I prefer delete based on the container ID. For example: `docker image rm 1234bcdefm`.
