@@ -43,14 +43,15 @@ cp config/config.sample.json public/config.json
 vi public/config.json
 ```
 Edit the file similar to what you did for Element Web:
->{
->  "default_server_config": {
->      "m.homeserver": {
->            "base_url": "https://synapse.matrix.example.com",
->                  "server_name": "matrix.example.com"
->      }
->    }
-> }
+```bash
+{
+  "default_server_config": {
+      "m.homeserver": {
+            "base_url": "https://synapse.matrix.example.com",
+                  "server_name": "matrix.example.com"
+      }
+   }
+}
 
 Now you need to generate the built bundles for distribution
 ```bash
