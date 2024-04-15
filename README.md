@@ -1,5 +1,5 @@
-# Matrix homeserver with Docker and Traefik(2.2, 2.3)
-[Dockerising](https://www.docker.com/) a full [Matrix](https://matrix.org/) server with [Element (Riot)](https://element.io/) messaging, [coTURN](https://github.com/coturn/coturn) NAT traversal and [Traefik(v2.2)](https://traefik.io/traefik/) proxy on [RancherOS](https://rancher.com/docs/os/v1.x/en/) and [Digital Ocean](https://www.digitalocean.com/).
+# Matrix homeserver with Docker and Traefik
+[Dockerising](https://www.docker.com/) a full [Matrix](https://matrix.org/) server with [Element (Riot)](https://element.io/) messaging, [coTURN](https://github.com/coturn/coturn) NAT traversal and [Traefik](https://traefik.io/traefik/) proxy on [RancherOS](https://rancher.com/docs/os/v1.x/en/) and [Digital Ocean](https://www.digitalocean.com/).
 
 Much of what I post here was gained with information from Jon Neverland's posts [here](https://jonnev.se/matrix-homeserver-synapse-v0-99-1-1-with-traefik/), [here](https://jonnev.se/riot-web-for-matrix-with-docker-and-traefik/) and [here](https://jonnev.se/traefik-with-docker-and-lets-encrypt/).
 
@@ -7,7 +7,7 @@ Much of what I post here was gained with information from Jon Neverland's posts 
 1. [Introduction and overview](#1-introduction-and-overview)  
 2. [Docker by means of RancherOS](#2-docker-by-means-of-rancheros)  
 3. [DNS Setup](#3-dns-setup)  
-4. [Controlling the Traefik(v2.2)](#4-controlling-the-traefikv22)  
+4. [Controlling the Traefik](#4-controlling-the-traefikv22)  
 5. [NGINX for web (incl. Element)](#5-nginx-for-web-incl-element)  
 6. [Postgres db for Matrix](#6-postgres-db-for-matrix)  
 7. [Synapse engine](#7-synapse-engine)  
@@ -86,7 +86,7 @@ IP | URL | Service that will be using it
 203.0.113.5 | turn.matrix.example.com | *coTURN*
 
 
-# 4. Controlling the Traefik(v2.2 or 2.3) 
+# 4. Controlling the Traefik
 [home](#contents)  
 ### Setup environment variables
 This is to make your life easier. Traefik requires the domain names to be indicated with backticks. If you use a **yml** file, that is no problem, but if you are passing the arguments directly on the command line shell (*which is how I am doing it here*), then the shell will interpret the backticks and break things. So, rather set them as environment variables e.g.:
@@ -151,7 +151,7 @@ Let's understand the above code a bit.
 
 
 2. Creating the container
-  You can do this using `docker-compose`, but I have opted for full command line to understand the options better and provide verbosity. You can easily take these options into a **yaml** file. (The below shows Traefik 2.2, but just change to 2.3 for the latest):  
+  You can do this using `docker-compose`, but I have opted for full command line to understand the options better and provide verbosity. You can easily take these options into a **yaml** file. (The below shows Traefik 2.2, but just change to the latest):  
   
 `docker run -d --restart=unless-stopped --network=web --name=proxy -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/traefik/traefik.toml:/traefik.toml -v /opt/traefik/acme.json:/acme.json traefik:v2.2 --configFile=/traefik.toml`
 
