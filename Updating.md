@@ -73,4 +73,5 @@ If all has gone well, you can stop the old DB and remove:
  - `docker rm postgres`  
 
 ## Removing old images
-Run `docker image ls --all`. From the output, identify images no longer being used. It is easier if your habit has been to pull specific releases and not just "latest". To delete, I prefer delete based on the container ID. For example: `docker image rm 1234bcdefm`.
+Run `docker image ls --all`. From the output, identify images no longer being used. It is easier if your habit has been to pull specific releases and not just "latest". To delete, I prefer delete based on the container ID. For example: `docker image rm 1234bcdefm`.  
+**UPDATE:** Using `docker image prune` is even better... ;)
