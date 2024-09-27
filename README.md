@@ -151,7 +151,7 @@ Let's understand the above code a bit.
 
 
 2. Creating the container
-  You can do this using `docker-compose`, but I have opted for full command line to understand the options better and provide verbosity. You can easily take these options into a **yaml** file. (The below shows Traefik 2.2, but just change to the latest):  
+  You can do this using `docker-compose`, but I have opted for full command line to understand the options better and provide verbosity. You can easily take these options into a **yaml** file. (The below shows Traefik 2.2, but just change to the latest. Verified that 3.1 also works):  
   
 `docker run -d --restart=unless-stopped --network=web --name=proxy -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/traefik/traefik.toml:/traefik.toml -v /opt/traefik/acme.json:/acme.json traefik:v2.2 --configFile=/traefik.toml`
 
